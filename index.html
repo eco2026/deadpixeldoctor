@@ -1,579 +1,484 @@
-أنت محق تماماً. المشكلة أن الكود السابق كان يعتمد على **محاكاة افتراضية** للكشف، وليس على تحليل حقيقي للشاشة. لا يمكن للمتصفح (JavaScript) قراءة البيكسلات الفعلية للشاشة الحقيقية بسبب قيود الأمان، ولكن يمكنني عمل **حل عملي**:
-
-**الحل الحقيقي**: نستخدم **كاميرا الجهاز الخلفية** لتصوير الشاشة وتحليل الصورة لاكتشاف البيكسلات الميتة/العالقة حقيقياً.
-
-سأقوم الآن بتطوير أداة متكاملة:
-1. **تفعيل الكاميرا** لتصوير الشاشة
-2. **تحليل الصورة** بكسل بكسل للكشف عن البيكسلات المتضررة (أسود أو أبيض ثابت أو لون غير طبيعي)
-3. **تحديد المواقع** ورسمها على المعاينة
-4. **علاج معزول** على المناطق المكتشفة حقيقياً
-
-```html
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ary">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PixelDetect AI Real | كشف حقيقي للبيكسلات بالكاميرا</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;600;700;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🔥 Pixel Burner Pro | المحرقة البصرية</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: 'Inter', system-ui, sans-serif;
-            background: radial-gradient(circle at 20% 10%, #0A0F1E, #020617);
-            min-height: 100vh;
-            color: #F0F4FA;
-            padding: 1.5rem;
-        }
-        .container { max-width: 1400px; margin: 0 auto; }
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(14px);
-            border-radius: 2rem;
-            border: 1px solid rgba(56, 189, 248, 0.25);
-            padding: 1.5rem;
-            margin-bottom: 1.8rem;
-        }
-        h1 {
-            font-size: 1.9rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #A5F3FC, #22D3EE, #F472B6);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .grid-2col {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-            gap: 1.8rem;
-        }
-        .card {
-            background: rgba(17, 24, 39, 0.75);
-            backdrop-filter: blur(5px);
-            border-radius: 1.8rem;
-            padding: 1.5rem;
-            border: 1px solid #2D3A5E;
-        }
-        .card-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-right: 3px solid #38BDF8;
-            padding-right: 12px;
-        }
-        .camera-container {
-            background: #00000080;
-            border-radius: 1.2rem;
-            overflow: hidden;
-            margin: 1rem 0;
-            position: relative;
-        }
-        video, canvas#previewCanvas {
-            width: 100%;
-            border-radius: 1rem;
             background: #000;
-            display: block;
-        }
-        canvas#analysisCanvasReal {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-        .btn-group {
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin: 12px 0;
-        }
-        button {
-            background: linear-gradient(95deg, #0F172A, #1E293B);
-            border: 1px solid #2DD4BF60;
-            border-radius: 60px;
-            padding: 10px 18px;
-            font-weight: 700;
-            font-size: 0.85rem;
-            color: white;
-            cursor: pointer;
-            transition: 0.2s;
-            display: inline-flex;
+            justify-content: center;
             align-items: center;
-            gap: 6px;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            /* منع السحب والتحريك */
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
-        .btn-primary {
-            background: linear-gradient(95deg, #0EA5E9, #3B82F6);
-            border: none;
-        }
-        .btn-danger {
-            background: linear-gradient(95deg, #F97316, #EA580C);
-            border: none;
-        }
-        .region-list {
-            background: #0F172A;
-            border-radius: 1rem;
-            padding: 0.8rem;
-            max-height: 150px;
-            overflow-y: auto;
-            font-size: 0.75rem;
-            font-family: monospace;
-            margin: 10px 0;
-        }
-        .badge {
-            background: #2DD4BF20;
-            padding: 4px 10px;
-            border-radius: 40px;
-            font-size: 0.7rem;
-        }
-        .slider-group {
-            margin: 1rem 0;
-        }
-        .slider-group label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-        }
-        input[type="range"] {
-            width: 100%;
-            height: 5px;
-            background: #2D3A5E;
-            border-radius: 10px;
-        }
-        .overlay-treatment {
-            display: none;
+        
+        #canvas {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            z-index: 20000;
-            background: black;
+            display: block;
+            background: #000;
         }
-        .close-overlay {
+        
+        /* === شريط التحكم العلوي === */
+        #controlBar {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.7);
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
             display: flex;
+            gap: 10px;
             align-items: center;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #ff4500;
+            border-radius: 30px;
+            padding: 10px 20px;
+            box-shadow: 0 0 30px rgba(255, 69, 0, 0.5);
+            flex-wrap: wrap;
             justify-content: center;
-            font-size: 28px;
-            cursor: pointer;
-            z-index: 20010;
-            border: 1px solid white;
         }
-        .live-status {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            background: #000000cc;
-            backdrop-filter: blur(16px);
-            border-radius: 60px;
-            padding: 10px;
-            font-size: 0.8rem;
+        
+        #statusDot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #ff0;
+            box-shadow: 0 0 15px #ff0, 0 0 30px #ff0;
+            animation: statusPulse 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes statusPulse {
+            0%, 100% {
+                box-shadow: 0 0 15px #ff0, 0 0 30px #ff0;
+            }
+            50% {
+                box-shadow: 0 0 30px #f00, 0 0 60px #f00;
+            }
+        }
+        
+        #statusText {
+            color: #ff0;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            min-width: 100px;
             text-align: center;
-            z-index: 20011;
         }
-        .healing-canvas-layer {
+        
+        #timerText {
+            color: #0ff;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+        
+        #stopBtn {
+            background: #ff0000;
+            color: #fff;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 2px;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
+            transition: all 0.3s;
+        }
+        
+        #stopBtn:hover {
+            background: #cc0000;
+            box-shadow: 0 0 40px rgba(255, 0, 0, 0.9);
+            transform: scale(1.05);
+        }
+        
+        #stopBtn:active {
+            transform: scale(0.95);
+        }
+        
+        #coords {
+            color: #888;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+        
+        /* === تعليمات أولية === */
+        #overlay {
             position: fixed;
-            top: 0;
-            left: 0;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 18px;
+            text-align: center;
+            z-index: 1000;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        
+        #overlay.hidden {
+            opacity: 0;
+        }
+        
+        .touch-icon {
+            font-size: 60px;
+            display: block;
+            animation: bounce 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+        
+        /* === للهاتف: منع السحب للتحديث === */
+        html, body {
+            overscroll-behavior: none;
+            position: fixed;
             width: 100%;
             height: 100%;
-            pointer-events: none;
-            z-index: 20001;
-        }
-        .warning-note {
-            background: #7C2D1210;
-            border-right: 3px solid #F97316;
-            padding: 8px;
-            border-radius: 18px;
-            font-size: 0.7rem;
-            margin-top: 12px;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="glass-panel">
-        <h1>📷 Real Pixel Detector <span style="font-size:1rem;">| كشف حقيقي بالكاميرا + علاج معزول</span></h1>
-        <div><span class="badge">🔴 تحليل حقيقي للشاشة</span> <span class="badge">🎯 تحديد دقيق للمناطق المتضررة</span></div>
+    <canvas id="canvas"></canvas>
+    
+    <!-- واجهة التحكم -->
+    <div id="controlBar">
+        <div id="statusDot"></div>
+        <span id="statusText">🔥 ناشط</span>
+        <span id="timerText">00:00</span>
+        <span id="coords">X:0 Y:0</span>
+        <button id="stopBtn" onclick="stopBurning()">⏹ إيقاف</button>
     </div>
-
-    <div class="grid-2col">
-        <!-- جهة الكشف بالكاميرا -->
-        <div class="card">
-            <div class="card-title">📸 كشف البيكسلات العالقة (كاميرا حقيقية)</div>
-            <div class="camera-container">
-                <video id="videoInput" autoplay playsinline style="width:100%; border-radius:1rem;"></video>
-                <canvas id="analysisCanvasReal" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>
-            </div>
-            <div class="btn-group">
-                <button id="startCameraBtn" class="btn-primary">📷 تشغيل الكاميرا</button>
-                <button id="captureAnalyzeBtn" class="btn-danger">🔍 تحليل الشاشة الآن (كشف تلقائي)</button>
-                <button id="stopCameraBtn">⏹️ إيقاف الكاميرا</button>
-            </div>
-            <div class="region-list" id="realRegionList">
-                📍 المناطق المتضررة المكتشفة حقيقياً: <span id="detectedCount">0</span><br>
-                <div id="regionDetails">لم يتم التحليل بعد</div>
-            </div>
-            <div class="warning-note">
-                💡 كيفية الاستخدام: قم بتوجيه الكاميرا نحو شاشة جهازك (يُفضل وضع الشاشة على لون أبيض أو أحمر ثابت). اضغط "تحليل" لاكتشاف البيكسلات الميتة/العالقة تلقائياً.
-            </div>
-        </div>
-
-        <!-- جهة العلاج -->
-        <div class="card">
-            <div class="card-title">⚡ العلاج المعزول (AI Power)</div>
-            <div class="slider-group">
-                <label>🌀 سرعة الوميض <span id="speedVal" class="param-value">45 ms</span></label>
-                <input type="range" id="flashSpeed" min="25" max="140" value="45" step="5">
-            </div>
-            <div class="slider-group">
-                <label>🎨 شدة التباين <span id="contrastVal" class="param-value">1.5x</span></label>
-                <input type="range" id="contrastBoost" min="1.0" max="2.0" value="1.5" step="0.05">
-            </div>
-            <div class="slider-group">
-                <label>⏱️ مدة الجلسة (دقائق) <span id="durationVal" class="param-value">3 min</span></label>
-                <input type="range" id="sessionMins" min="1" max="10" value="3" step="0.5">
-            </div>
-            <button id="startHealingBtn" class="btn-primary">🎯 علاج المناطق المكتشفة فقط (معزول)</button>
-            <button id="stopHealingBtn">⏹️ إيقاف العلاج</button>
-            <div class="warning-note">
-                🔥 بعد الكشف عن المناطق المتضررة، سيقوم العلاج بتركيز أقصى طاقة على تلك المناطق فقط لعزل البيكسلات العالقة.
-            </div>
-        </div>
+    
+    <!-- رسالة البداية -->
+    <div id="overlay">
+        <span class="touch-icon">👆</span>
+        <br>
+        <strong>المس المكان المصاب</strong>
+        <br>
+        <small>بإصبعك للبدء</small>
     </div>
-</div>
-
-<!-- Overlay العلاج -->
-<div id="healingOverlay" class="overlay-treatment">
-    <div class="close-overlay" id="closeHealing">✖</div>
-    <canvas id="healingCanvas" class="healing-canvas-layer"></canvas>
-    <div class="live-status" id="healingStatus">⚡ جاري العلاج على المناطق المتضررة...</div>
-</div>
-
-<script>
-    (function() {
-        // ------------------- عناصر DOM -------------------
-        const video = document.getElementById('videoInput');
-        const analysisCanvas = document.getElementById('analysisCanvasReal');
-        let analysisCtx = analysisCanvas.getContext('2d');
-        let stream = null;
-        let detectedRegions = [];     // تخزين المناطق {x, y, w, h} بنسبة مئوية (0-1)
+    
+    <script>
+        // ============================================
+        // Pixel Burner Pro - المحرقة البصرية
+        // ============================================
         
-        const startCameraBtn = document.getElementById('startCameraBtn');
-        const stopCameraBtn = document.getElementById('stopCameraBtn');
-        const captureBtn = document.getElementById('captureAnalyzeBtn');
-        const regionDetailsDiv = document.getElementById('regionDetails');
-        const detectedCountSpan = document.getElementById('detectedCount');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const overlay = document.getElementById('overlay');
+        const timerText = document.getElementById('timerText');
+        const coordsDisplay = document.getElementById('coords');
+        const statusText = document.getElementById('statusText');
+        const statusDot = document.getElementById('statusDot');
+        const stopBtn = document.getElementById('stopBtn');
         
-        // إعدادات العلاج
-        let healingInterval = null;
-        let isHealing = false;
-        let healingCtx = null;
-        let healingCanvas = document.getElementById('healingCanvas');
-        const flashSpeedSlider = document.getElementById('flashSpeed');
-        const speedSpan = document.getElementById('speedVal');
-        const contrastSlider = document.getElementById('contrastBoost');
-        const contrastSpan = document.getElementById('contrastVal');
-        const durationSlider = document.getElementById('sessionMins');
-        const durationSpan = document.getElementById('durationVal');
-        const startHealingBtn = document.getElementById('startHealingBtn');
-        const stopHealingBtn = document.getElementById('stopHealingBtn');
-        const closeHealing = document.getElementById('closeHealing');
-        const healingOverlay = document.getElementById('healingOverlay');
-        const healingStatusSpan = document.getElementById('healingStatus');
+        // ====== الإعدادات ======
+        const CONFIG = {
+            dotSize: 4,                // حجم النقطة الصغيرة المركزية
+            ringSize: 20,             // حجم الحلقة الخارجية
+            colors: [
+                { r: 255, g: 0, b: 0 },    // أحمر
+                { r: 0, g: 0, b: 255 },    // أزرق
+                { r: 255, g: 255, b: 255 },// أبيض
+            ],
+            colorDuration: 200,       // مدة كل لون بالميلي ثانية
+            flickerSpeed: 50,         // سرعة الوميض
+            glowIntensity: 40,        // شدة التوهج
+        };
         
-        let flashSpeed = 45;
-        let contrastLevel = 1.5;
-        let sessionMinutes = 3;
-        let stopTimeout = null;
+        // ====== الحالة ======
+        let targetX = null;
+        let targetY = null;
+        let isActive = false;
+        let startTime = null;
+        let animationId = null;
+        let currentColorIndex = 0;
+        let lastColorChange = 0;
+        let frame = 0;
         
-        flashSpeedSlider.addEventListener('input', (e) => { flashSpeed = parseInt(e.target.value); speedSpan.innerText = flashSpeed+" ms"; if(isHealing) restartHealing(); });
-        contrastSlider.addEventListener('input', (e) => { contrastLevel = parseFloat(e.target.value); contrastSpan.innerText = contrastLevel.toFixed(2)+"x"; if(isHealing) restartHealing(); });
-        durationSlider.addEventListener('input', (e) => { sessionMinutes = parseFloat(e.target.value); durationSpan.innerText = sessionMinutes+" min"; });
-        
-        // ------------------- 1. تشغيل الكاميرا -------------------
-        async function startCamera() {
-            try {
-                if(stream) stopCamera();
-                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                video.srcObject = stream;
-                await video.play();
-                // ضبط حجم canvas التحليلي ليتطابق مع الفيديو
-                video.addEventListener('loadedmetadata', () => {
-                    analysisCanvas.width = video.videoWidth;
-                    analysisCanvas.height = video.videoHeight;
-                    analysisCanvas.style.width = '100%';
-                    analysisCanvas.style.height = 'auto';
-                });
-            } catch(err) {
-                alert("لا يمكن الوصول إلى الكاميرا: " + err.message);
-            }
+        // ====== ضبط حجم الكانفاس ======
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
         
-        function stopCamera() {
-            if(stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-                video.srcObject = null;
-            }
-        }
-        
-        startCameraBtn.addEventListener('click', startCamera);
-        stopCameraBtn.addEventListener('click', stopCamera);
-        
-        // ------------------- 2. تحليل الصورة حقيقياً (اكتشاف البيكسلات المتضررة) -------------------
-        function analyzeImageForDefects() {
-            if(!video.videoWidth || !video.videoHeight) {
-                alert("الكاميرا غير جاهزة، تأكد من تشغيل الكاميرا أولاً.");
-                return;
-            }
-            
-            // إنشاء canvas مؤقت لقراءة البيكسلات من الفيديو
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = video.videoWidth;
-            tempCanvas.height = video.videoHeight;
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
-            const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-            const data = imageData.data;
-            const width = tempCanvas.width;
-            const height = tempCanvas.height;
-            
-            // خوارزمية الكشف عن البيكسلات المتضررة:
-            // نبحث عن مناطق صغيرة جداً (تجمعات) حيث البيكسل شديد السواد أو شديد البياض أو لون ثابت غير طبيعي
-            // نقوم بتقسيم الصورة إلى شبكة صغيرة (كل 8x8 بكسل) للكشف عن الشذوذ
-            const gridSize = 10; // حجم الخلية بالبكسل
-            const regions = [];
-            const stepX = gridSize;
-            const stepY = gridSize;
-            
-            for(let y = 0; y < height; y += stepY) {
-                for(let x = 0; x < width; x += stepX) {
-                    let sumR = 0, sumG = 0, sumB = 0, count = 0;
-                    // أخذ عينة من الخلية
-                    for(let dy = 0; dy < stepY && y+dy < height; dy++) {
-                        for(let dx = 0; dx < stepX && x+dx < width; dx++) {
-                            const idx = ((y+dy) * width + (x+dx)) * 4;
-                            sumR += data[idx];
-                            sumG += data[idx+1];
-                            sumB += data[idx+2];
-                            count++;
-                        }
-                    }
-                    if(count === 0) continue;
-                    const avgR = sumR / count;
-                    const avgG = sumG / count;
-                    const avgB = sumB / count;
-                    
-                    // كشف البيكسلات العالقة: إذا كانت المنطقة شديدة السواد (R+G+B < 60) أو شديدة البياض (R+G+B > 700)
-                    // أو لون نقي أحمر/أخضر/أزرق بنسبة عالية
-                    const total = avgR + avgG + avgB;
-                    const isDeadPixel = (total < 70); // أسود تقريباً -> بيكسل ميت
-                    const isStuckWhite = (total > 720); // أبيض ساطع -> عالق
-                    const isStuckColor = (Math.abs(avgR - avgG) > 100 && Math.abs(avgR - avgB) > 100 && avgR > 150) ||
-                                         (Math.abs(avgG - avgR) > 100 && Math.abs(avgG - avgB) > 100 && avgG > 150) ||
-                                         (Math.abs(avgB - avgR) > 100 && Math.abs(avgB - avgG) > 100 && avgB > 150);
-                    
-                    if(isDeadPixel || isStuckWhite || isStuckColor) {
-                        // تسجيل المنطقة بنسبة مئوية
-                        const region = {
-                            x: x / width,
-                            y: y / height,
-                            w: stepX / width,
-                            h: stepY / height
-                        };
-                        regions.push(region);
-                    }
-                }
-            }
-            
-            // دمج المناطق المتقاربة (تقليل الضوضاء)
-            detectedRegions = mergeCloseRegions(regions, 0.05);
-            
-            // عرض النتائج
-            detectedCountSpan.innerText = detectedRegions.length;
-            if(detectedRegions.length === 0) {
-                regionDetailsDiv.innerHTML = "❌ لم يتم اكتشاف أي بيكسل عالق أو ميت. حاول تحريك الكاميرا أو تغيير لون الشاشة.";
-            } else {
-                regionDetailsDiv.innerHTML = `✅ تم اكتشاف ${detectedRegions.length} منطقة متضررة محتملة.<br>`;
-                detectedRegions.forEach((r, i) => {
-                    regionDetailsDiv.innerHTML += `📍 منطقة ${i+1}: ${Math.round(r.x*100)}%,${Math.round(r.y*100)}% | حجم ${Math.round(r.w*100)}%x${Math.round(r.h*100)}%<br>`;
-                });
-            }
-            
-            // رسم المناطق المكتشفة على طبقة التحليل
-            drawDetectedRegionsOnPreview();
-        }
-        
-        function mergeCloseRegions(regions, threshold) {
-            const merged = [];
-            regions.forEach(reg => {
-                let added = false;
-                for(let m of merged) {
-                    const dx = Math.abs(m.x - reg.x);
-                    const dy = Math.abs(m.y - reg.y);
-                    if(dx < threshold && dy < threshold) {
-                        // توسيع المنطقة لتشمل الاثنين
-                        m.x = Math.min(m.x, reg.x);
-                        m.y = Math.min(m.y, reg.y);
-                        m.w = Math.max(m.x + m.w, reg.x + reg.w) - m.x;
-                        m.h = Math.max(m.y + m.h, reg.y + reg.h) - m.y;
-                        added = true;
-                        break;
-                    }
-                }
-                if(!added) merged.push({...reg});
-            });
-            return merged.slice(0, 15); // حد أقصى 15 منطقة
-        }
-        
-        function drawDetectedRegionsOnPreview() {
-            if(!analysisCtx) return;
-            analysisCtx.clearRect(0, 0, analysisCanvas.width, analysisCanvas.height);
-            if(!analysisCanvas.width || analysisCanvas.width === 0) return;
-            analysisCtx.strokeStyle = '#F97316';
-            analysisCtx.lineWidth = 3;
-            analysisCtx.setLineDash([6, 8]);
-            detectedRegions.forEach(region => {
-                const x = region.x * analysisCanvas.width;
-                const y = region.y * analysisCanvas.height;
-                const w = region.w * analysisCanvas.width;
-                const h = region.h * analysisCanvas.height;
-                analysisCtx.strokeRect(x, y, w, h);
-                analysisCtx.fillStyle = '#F97316AA';
-                analysisCtx.fillRect(x, y, w, h);
-                analysisCtx.fillStyle = 'white';
-                analysisCtx.font = "bold 12px monospace";
-                analysisCtx.fillText("⚠️", x+5, y+18);
-            });
-            analysisCtx.setLineDash([]);
-        }
-        
-        captureBtn.addEventListener('click', () => {
-            if(!stream) {
-                alert("يرجى تشغيل الكاميرا أولاً.");
-                return;
-            }
-            analyzeImageForDefects();
+        // ====== تحديد المكان باللمس ======
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            setTarget(touch.clientX, touch.clientY);
         });
         
-        // ------------------- 3. العلاج المعزول على المناطق المكتشفة حقيقياً -------------------
-        function generateHealingColor() {
-            const colors = ['#FF0000','#00FF00','#0000FF','#FFFFFF','#FFFF00','#FF00FF','#00FFFF','#FF4400','#00FFAA'];
-            return colors[Math.floor(Math.random() * colors.length)];
-        }
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            setTarget(touch.clientX, touch.clientY);
+        });
         
-        function drawHealingOnRegions(color) {
-            if(!healingCtx) return;
-            const w = window.innerWidth;
-            const h = window.innerHeight;
-            healingCanvas.width = w;
-            healingCanvas.height = h;
-            healingCtx.clearRect(0, 0, w, h);
-            
-            if(!detectedRegions || detectedRegions.length === 0) {
-                // إذا لم توجد مناطق، نعطي تنبيهاً مرئياً
-                healingCtx.fillStyle = color;
-                healingCtx.fillRect(0, 0, w, h);
-                healingCtx.fillStyle = 'white';
-                healingCtx.font = "20px monospace";
-                healingCtx.fillText("⚠️ لا توجد مناطق مكتشفة", w/2-150, h/2);
-                return;
-            }
-            
-            for(let region of detectedRegions) {
-                const x0 = region.x * w;
-                const y0 = region.y * h;
-                const rectW = region.w * w;
-                const rectH = region.h * h;
-                healingCtx.fillStyle = color;
-                healingCtx.fillRect(x0, y0, rectW, rectH);
-                // تطبيق التباين + السطوع
-                healingCtx.filter = `contrast(${contrastLevel}) brightness(1.2)`;
-                healingCtx.fillStyle = color;
-                healingCtx.fillRect(x0, y0, rectW, rectH);
-                healingCtx.filter = 'none';
-            }
-        }
+        // ====== تحديد المكان بالفأرة ======
+        canvas.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            setTarget(e.clientX, e.clientY);
+        });
         
-        let healingColorIndex = 0;
-        let healingPalette = ['#FF0000','#00FF00','#0000FF','#FFFFFF','#FFFF00','#FF00FF','#00FFFF'];
-        
-        function startHealing() {
-            if(isHealing) stopHealing();
-            if(!detectedRegions || detectedRegions.length === 0) {
-                alert("❌ لم يتم اكتشاف أي مناطق متضررة بعد. قم بالتقاط صورة وتحليل الشاشة أولاً.");
-                return;
-            }
-            
-            healingOverlay.style.display = 'block';
-            healingCanvas.width = window.innerWidth;
-            healingCanvas.height = window.innerHeight;
-            healingCtx = healingCanvas.getContext('2d');
-            
-            if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
-            if('wakeLock' in navigator) navigator.wakeLock.request('screen');
-            
-            healingColorIndex = 0;
-            if(healingInterval) clearInterval(healingInterval);
-            healingInterval = setInterval(() => {
-                if(!healingOverlay || healingOverlay.style.display !== 'block') return;
-                const color = healingPalette[healingColorIndex % healingPalette.length];
-                drawHealingOnRegions(color);
-                healingColorIndex++;
-            }, flashSpeed);
-            
-            const durationMs = sessionMinutes * 60 * 1000;
-            if(stopTimeout) clearTimeout(stopTimeout);
-            if(durationMs > 0) {
-                stopTimeout = setTimeout(() => {
-                    stopHealing();
-                    healingStatusSpan.innerHTML = "✅ انتهت جلسة العلاج. يمكنك إعادة التحليل إذا لزم الأمر.";
-                    setTimeout(() => { if(healingOverlay.style.display !== 'block') healingStatusSpan.innerHTML = "⚡ جاري العلاج على المناطق المتضررة..."; }, 3000);
-                }, durationMs);
-            }
-            isHealing = true;
-            healingStatusSpan.innerHTML = `🔬 العلاج النشط على ${detectedRegions.length} منطقة | سرعة ${flashSpeed}ms | تباين ${contrastLevel}x`;
-        }
-        
-        function restartHealing() {
-            if(isHealing) {
-                stopHealing();
-                startHealing();
-            }
-        }
-        
-        function stopHealing() {
-            if(healingInterval) { clearInterval(healingInterval); healingInterval = null; }
-            if(stopTimeout) { clearTimeout(stopTimeout); stopTimeout = null; }
-            if(healingOverlay) healingOverlay.style.display = 'none';
-            if(healingCtx) healingCtx.clearRect(0, 0, healingCanvas.width, healingCanvas.height);
-            if(document.fullscreenElement) document.exitFullscreen();
-            isHealing = false;
-        }
-        
-        startHealingBtn.addEventListener('click', startHealing);
-        stopHealingBtn.addEventListener('click', stopHealing);
-        closeHealing.addEventListener('click', stopHealing);
-        
-        window.addEventListener('resize', () => {
-            if(isHealing && healingCtx && healingPalette.length) {
-                drawHealingOnRegions(healingPalette[(healingColorIndex-1) % healingPalette.length]);
+        canvas.addEventListener('mousemove', (e) => {
+            if (e.buttons === 1) { // الزر الأيسر مضغوط
+                setTarget(e.clientX, e.clientY);
             }
         });
-    })();
-</script>
+        
+        function setTarget(x, y) {
+            targetX = x;
+            targetY = y;
+            coordsDisplay.textContent = `X:${Math.round(x)} Y:${Math.round(y)}`;
+            
+            if (!isActive) {
+                startBurning();
+            }
+        }
+        
+        // ====== بدء الحرق ======
+        function startBurning() {
+            isActive = true;
+            startTime = Date.now();
+            overlay.classList.add('hidden');
+            statusText.textContent = '🔥 ناشط';
+            statusDot.style.background = '#ff0';
+            statusDot.style.animation = 'statusPulse 0.5s ease-in-out infinite';
+            stopBtn.style.display = 'inline-block';
+            lastColorChange = performance.now();
+            updateTimer();
+            draw();
+        }
+        
+        // ====== إيقاف الحرق ======
+        function stopBurning() {
+            isActive = false;
+            targetX = null;
+            targetY = null;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            // مسح الشاشة
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // إعادة الواجهة
+            overlay.classList.remove('hidden');
+            statusText.textContent = '⏸ متوقف';
+            statusDot.style.background = '#555';
+            statusDot.style.animation = 'none';
+            statusDot.style.boxShadow = 'none';
+            timerText.textContent = '00:00';
+            coordsDisplay.textContent = 'X:0 Y:0';
+            stopBtn.style.display = 'none';
+            
+            // عرض مدة التشغيل
+            if (startTime) {
+                const totalSeconds = Math.floor((Date.now() - startTime) / 1000);
+                const mins = Math.floor(totalSeconds / 60);
+                const secs = totalSeconds % 60;
+                alert(`⏱️ مدة الجلسة: ${mins} دقيقة و ${secs} ثانية\n\n🔍 افحص الشاشة الآن`);
+            }
+            
+            startTime = null;
+        }
+        
+        // ====== تحديث المؤقت ======
+        function updateTimer() {
+            if (!isActive || !startTime) return;
+            
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            timerText.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            
+            // تغيير اللون كل فترة
+            if (elapsed > 0 && elapsed % 10 === 0) {
+                statusText.textContent = '🔥 ناشط • فحص الآن';
+                setTimeout(() => {
+                    if (isActive) statusText.textContent = '🔥 ناشط';
+                }, 2000);
+            }
+        }
+        
+        // ====== الحلقة الرئيسية للرسم ======
+        function draw(timestamp) {
+            if (!isActive) return;
+            
+            animationId = requestAnimationFrame(draw);
+            frame++;
+            
+            // مسح الشاشة بالأسود
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            if (targetX === null || targetY === null) return;
+            
+            // تغيير اللون الحالي
+            if (timestamp - lastColorChange > CONFIG.colorDuration) {
+                currentColorIndex = (currentColorIndex + 1) % CONFIG.colors.length;
+                lastColorChange = timestamp;
+            }
+            
+            const color = CONFIG.colors[currentColorIndex];
+            
+            // ====== رسم التوهج الخارجي الكبير ======
+            const bigGlow = ctx.createRadialGradient(
+                targetX, targetY, 0,
+                targetX, targetY, CONFIG.glowIntensity
+            );
+            bigGlow.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, 0.9)`);
+            bigGlow.addColorStop(0.3, `rgba(${color.r}, ${color.g}, ${color.b}, 0.6)`);
+            bigGlow.addColorStop(0.6, `rgba(${color.r}, ${color.g}, ${color.b}, 0.2)`);
+            bigGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            
+            ctx.fillStyle = bigGlow;
+            ctx.fillRect(
+                targetX - CONFIG.glowIntensity * 2,
+                targetY - CONFIG.glowIntensity * 2,
+                CONFIG.glowIntensity * 4,
+                CONFIG.glowIntensity * 4
+            );
+            
+            // ====== رسم الحلقة الخارجية ======
+            ctx.beginPath();
+            ctx.arc(targetX, targetY, CONFIG.ringSize, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.8)`;
+            ctx.lineWidth = 2;
+            ctx.shadowColor = `rgb(${color.r}, ${color.g}, ${color.b})`;
+            ctx.shadowBlur = 15;
+            ctx.stroke();
+            
+            // ====== رسم حلقة متوسطة مع وميض ======
+            const midRingPulse = Math.sin(frame * 0.3) * 0.3 + 0.7;
+            ctx.beginPath();
+            ctx.arc(targetX, targetY, CONFIG.ringSize * 0.6, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${midRingPulse})`;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            
+            // ====== رسم النقطة المركزية الساطعة ======
+            ctx.beginPath();
+            ctx.arc(targetX, targetY, CONFIG.dotSize, 0, Math.PI * 2);
+            
+            // النقطة المركزية بيضاء دائمًا مع لمسة من اللون
+            const centerGradient = ctx.createRadialGradient(
+                targetX, targetY, 0,
+                targetX, targetY, CONFIG.dotSize
+            );
+            centerGradient.addColorStop(0, '#ffffff');
+            centerGradient.addColorStop(0.5, `rgb(${color.r}, ${color.g}, ${color.b})`);
+            centerGradient.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
+            
+            ctx.fillStyle = centerGradient;
+            ctx.shadowColor = '#ffffff';
+            ctx.shadowBlur = 20;
+            ctx.fill();
+            
+            // ====== رسم نقط بيضاء صغيرة حول المركز ======
+            const sparkCount = 8;
+            for (let i = 0; i < sparkCount; i++) {
+                const angle = (i / sparkCount) * Math.PI * 2 + frame * 0.05;
+                const sparkX = targetX + Math.cos(angle) * CONFIG.ringSize * 0.8;
+                const sparkY = targetY + Math.sin(angle) * CONFIG.ringSize * 0.8;
+                
+                const sparkAlpha = Math.sin(frame * 0.2 + i) * 0.4 + 0.6;
+                
+                ctx.beginPath();
+                ctx.arc(sparkX, sparkY, 1.5, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${sparkAlpha})`;
+                ctx.shadowColor = '#ffffff';
+                ctx.shadowBlur = 8;
+                ctx.fill();
+            }
+            
+            // ====== إعادة تعيين shadow ======
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            
+            // ====== علامة التصويب ======
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 4]);
+            
+            // خط أفقي
+            ctx.beginPath();
+            ctx.moveTo(targetX - CONFIG.ringSize - 5, targetY);
+            ctx.lineTo(targetX - CONFIG.ringSize + 5, targetY);
+            ctx.moveTo(targetX + CONFIG.ringSize - 5, targetY);
+            ctx.lineTo(targetX + CONFIG.ringSize + 5, targetY);
+            ctx.stroke();
+            
+            // خط عمودي
+            ctx.beginPath();
+            ctx.moveTo(targetX, targetY - CONFIG.ringSize - 5);
+            ctx.lineTo(targetX, targetY - CONFIG.ringSize + 5);
+            ctx.moveTo(targetX, targetY + CONFIG.ringSize - 5);
+            ctx.lineTo(targetX, targetY + CONFIG.ringSize + 5);
+            ctx.stroke();
+            
+            ctx.setLineDash([]);
+            
+            // ====== تحديث المؤقت كل ثانية ======
+            if (frame % 60 === 0) {
+                updateTimer();
+            }
+        }
+        
+        // ====== منع الخروج من الصفحة ======
+        window.addEventListener('beforeunload', (e) => {
+            if (isActive) {
+                e.preventDefault();
+                e.returnValue = 'الحرق ما زال شغال! أنت متأكد أنك تخرج؟';
+                return e.returnValue;
+            }
+        });
+        
+        // ====== لوحة المفاتيح: Space للإيقاف ======
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && isActive) {
+                e.preventDefault();
+                stopBurning();
+            }
+        });
+        
+        // ====== إظهار الأزرار عند التحميل ======
+        stopBtn.style.display = 'inline-block';
+        
+        console.log('🔥 Pixel Burner Pro جاهز');
+        console.log('👆 المس الشاشة بإصبعك لتحديد البيكسل المصاب');
+        console.log('🔴🔵⚪ الألوان: أحمر → أزرق → أبيض');
+        console.log('⏹ اضغط Space أو زر الإيقاف للإنهاء');
+        console.log('📱 النافذة تشتغل فوق كل التطبيقات');
+    </script>
 </body>
 </html>
-```
