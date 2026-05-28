@@ -2,102 +2,168 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>مصلح البيكسل العالق</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إصلاح الشاشة</title>
     <style>
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
+            background-color: black; /* خلفية كحلة باش يبان المربع مزيان */
             overflow: hidden;
-            background-color: black;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-family: Tahoma, sans-serif;
-            cursor: pointer;
+            font-family: Arial, sans-serif;
+            touch-action: none; /* باش نمنعو الصفحة من التحراك فالتليفون */
         }
-        #controls {
+        #damage-box {
+            width: 50px;
+            height: 50px;
             position: absolute;
-            z-index: 10;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            border: 2px solid #555;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            cursor: move;
+            z-index: 5;
+            /* أنيماسيون باش الألوان يتبدلو بالزربة */
+            animation: flash 0.1s infinite alternate; 
         }
-        button {
+        @keyframes flash {
+            0% { background-color: white; }
+            33% { background-color: red; }
+            66% { background-color: green; }
+            100% { background-color: blue; }
+        }
+        #exit-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
             padding: 15px 30px;
-            font-size: 20px;
-            cursor: pointer;
-            background-color: #28a745;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: #ff3333;
             color: white;
             border: none;
             border-radius: 8px;
-            font-weight: bold;
-            margin-top: 20px;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
-        button:hover {
-            background-color: #218838;
+        #exit-btn:hover {
+            background-color: #cc0000;
         }
-        .warning {
-            color: #ff4d4d;
-            font-weight: bold;
-            font-size: 18px;
-            margin-top: 15px;
+        #info-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-
-    <div id="controls">
-        <h2>برنامج إصلاح البيكسلات العالقة</h2>
-        <p>هاد البرنامج غيبدا يبدل الألوان بالزربة باش يفيّق البيكسل المبلوكي.</p>
-        <p>ملي تبغي توقفو، كليكي غير جوج مرات (Double Click) فاي بلاصة فديك الشاشة.</p>
-        <p class="warning">⚠️ تحذير: هادشي ماصالحش للناس لي عندهم مرض الصرع (Epilepsy) ولا حساسية للضوء كيصني.</p>
-        <button onclick="startFixer(event)">بدا العملية دابا</button>
+    <div id="info-message">
+        ⚠️ عافاك ماتنساش تطلع الإضاءة ديال الشاشة للماكسيموم بيدك.<br>
+        جر المربع وحطو فوق البلاصة المتضررة.
     </div>
+    
+    <div id="damage-box"></div>
+    
+    <button id="exit-btn">خروج</button>
 
     <script>
-        // الألوان لي غتبدل بالزربة
-        const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFFFF', '#000000'];
-        let i = 0;
-        let interval;
-        let isRunning = false;
+        // --- 1. تحريك المربع (Draggable Box) ---
+        const box = document.getElementById('damage-box');
+        let isDragging = false;
+        let startX, startY, initialX, initialY;
 
-        function startFixer(event) {
-            event.stopPropagation(); // باش مايحسبش الكليك د البداية فحال كليك د التوقيف
-            document.getElementById('controls').style.display = 'none';
-            
-            // نردوها شاشة كاملة باش تشد القنات كاملين
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
+        // أحداث الماوس والتليفون
+        box.addEventListener('mousedown', startDrag);
+        box.addEventListener('touchstart', startDrag, {passive: false});
+
+        function startDrag(e) {
+            isDragging = true;
+            if(e.type === 'touchstart') {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+            } else {
+                startX = e.clientX;
+                startY = e.clientY;
             }
-            
-            // سرعة تبدال الألوان (20 ميلي ثانية = سرعة قوية بزاف)
-            interval = setInterval(() => {
-                document.body.style.backgroundColor = colors[i];
-                i = (i + 1) % colors.length;
-            }, 20); 
-            
-            isRunning = true;
+            initialX = box.offsetLeft;
+            initialY = box.offsetTop;
+            box.style.transform = 'translate(0, 0)'; // نحيدو التوسيط باش الحساب يجي مقاد
+            box.style.left = initialX + 'px';
+            box.style.top = initialY + 'px';
         }
 
-        // باش نوقفو البرنامج يلا درنا دابل كليك
-        document.body.addEventListener('dblclick', function() {
-            if (isRunning) {
-                clearInterval(interval);
-                document.body.style.backgroundColor = 'black';
-                document.getElementById('controls').style.display = 'block';
-                
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('touchmove', drag, {passive: false});
+
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            let currentX, currentY;
+            if(e.type === 'touchmove') {
+                currentX = e.touches[0].clientX;
+                currentY = e.touches[0].clientY;
+            } else {
+                currentX = e.clientX;
+                currentY = e.clientY;
+            }
+            
+            let dx = currentX - startX;
+            let dy = currentY - startY;
+            
+            box.style.left = (initialX + dx) + 'px';
+            box.style.top = (initialY + dy) + 'px';
+        }
+
+        document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('touchend', stopDrag);
+
+        function stopDrag() {
+            isDragging = false;
+        }
+
+        // --- 2. منع الشاشة من الانطفاء (Wake Lock API) ---
+        let wakeLock = null;
+        
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('مزيان، الشاشة مغاديش تطفى دابا.');
                 }
-                isRunning = false;
+            } catch (err) {
+                console.error(`وقع مشكل: ${err.name}, ${err.message}`);
+            }
+        }
+        
+        // نطلبوها أول مرة
+        requestWakeLock();
+        
+        // نرجعوها يلا اليوزر خرج ورجع للصفحة
+        document.addEventListener('visibilitychange', () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                requestWakeLock();
             }
         });
-    </script>
 
+        // --- 3. زر الخروج ---
+        const exitBtn = document.getElementById('exit-btn');
+        exitBtn.addEventListener('click', () => {
+            // نطلقو الشاشة باش ترجع تطفى عادي
+            if (wakeLock !== null) {
+                wakeLock.release().then(() => wakeLock = null);
+            }
+            
+            // نخفيو كلشي ونعطيو رسالة
+            document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:20%; font-family:Arial;'>تم الخروج وإيقاف العملية. تقدر تسد الصفحة دابا.</h1>";
+        });
+    </script>
 </body>
 </html>
