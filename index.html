@@ -1,484 +1,103 @@
 <!DOCTYPE html>
-<html lang="ary">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>🔥 Pixel Burner Pro | المحرقة البصرية</title>
+    <title>مصلح البيكسل العالق</title>
     <style>
-        * {
+        body, html {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-family: 'Courier New', monospace;
-            overflow: hidden;
-            /* منع السحب والتحريك */
-            touch-action: none;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-        
-        #canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            display: block;
-            background: #000;
-        }
-        
-        /* === شريط التحكم العلوي === */
-        #controlBar {
-            position: fixed;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 999;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.9);
-            border: 2px solid #ff4500;
-            border-radius: 30px;
-            padding: 10px 20px;
-            box-shadow: 0 0 30px rgba(255, 69, 0, 0.5);
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        
-        #statusDot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #ff0;
-            box-shadow: 0 0 15px #ff0, 0 0 30px #ff0;
-            animation: statusPulse 0.5s ease-in-out infinite;
-        }
-        
-        @keyframes statusPulse {
-            0%, 100% {
-                box-shadow: 0 0 15px #ff0, 0 0 30px #ff0;
-            }
-            50% {
-                box-shadow: 0 0 30px #f00, 0 0 60px #f00;
-            }
-        }
-        
-        #statusText {
-            color: #ff0;
-            font-size: 14px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            min-width: 100px;
-            text-align: center;
-        }
-        
-        #timerText {
-            color: #0ff;
-            font-size: 12px;
-            letter-spacing: 1px;
-        }
-        
-        #stopBtn {
-            background: #ff0000;
-            color: #fff;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            letter-spacing: 2px;
-            font-family: 'Courier New', monospace;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
-            transition: all 0.3s;
-        }
-        
-        #stopBtn:hover {
-            background: #cc0000;
-            box-shadow: 0 0 40px rgba(255, 0, 0, 0.9);
-            transform: scale(1.05);
-        }
-        
-        #stopBtn:active {
-            transform: scale(0.95);
-        }
-        
-        #coords {
-            color: #888;
-            font-size: 10px;
-            letter-spacing: 1px;
-        }
-        
-        /* === تعليمات أولية === */
-        #overlay {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #fff;
-            font-size: 18px;
-            text-align: center;
-            z-index: 1000;
-            pointer-events: none;
-            transition: opacity 0.5s;
-        }
-        
-        #overlay.hidden {
-            opacity: 0;
-        }
-        
-        .touch-icon {
-            font-size: 60px;
-            display: block;
-            animation: bounce 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes bounce {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-20px);
-            }
-        }
-        
-        /* === للهاتف: منع السحب للتحديث === */
-        html, body {
-            overscroll-behavior: none;
-            position: fixed;
             width: 100%;
             height: 100%;
+            overflow: hidden;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-family: Tahoma, sans-serif;
+            cursor: pointer;
+        }
+        #controls {
+            position: absolute;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid #555;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .warning {
+            color: #ff4d4d;
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
-    
-    <!-- واجهة التحكم -->
-    <div id="controlBar">
-        <div id="statusDot"></div>
-        <span id="statusText">🔥 ناشط</span>
-        <span id="timerText">00:00</span>
-        <span id="coords">X:0 Y:0</span>
-        <button id="stopBtn" onclick="stopBurning()">⏹ إيقاف</button>
+
+    <div id="controls">
+        <h2>برنامج إصلاح البيكسلات العالقة</h2>
+        <p>هاد البرنامج غيبدا يبدل الألوان بالزربة باش يفيّق البيكسل المبلوكي.</p>
+        <p>ملي تبغي توقفو، كليكي غير جوج مرات (Double Click) فاي بلاصة فديك الشاشة.</p>
+        <p class="warning">⚠️ تحذير: هادشي ماصالحش للناس لي عندهم مرض الصرع (Epilepsy) ولا حساسية للضوء كيصني.</p>
+        <button onclick="startFixer(event)">بدا العملية دابا</button>
     </div>
-    
-    <!-- رسالة البداية -->
-    <div id="overlay">
-        <span class="touch-icon">👆</span>
-        <br>
-        <strong>المس المكان المصاب</strong>
-        <br>
-        <small>بإصبعك للبدء</small>
-    </div>
-    
+
     <script>
-        // ============================================
-        // Pixel Burner Pro - المحرقة البصرية
-        // ============================================
-        
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        const overlay = document.getElementById('overlay');
-        const timerText = document.getElementById('timerText');
-        const coordsDisplay = document.getElementById('coords');
-        const statusText = document.getElementById('statusText');
-        const statusDot = document.getElementById('statusDot');
-        const stopBtn = document.getElementById('stopBtn');
-        
-        // ====== الإعدادات ======
-        const CONFIG = {
-            dotSize: 4,                // حجم النقطة الصغيرة المركزية
-            ringSize: 20,             // حجم الحلقة الخارجية
-            colors: [
-                { r: 255, g: 0, b: 0 },    // أحمر
-                { r: 0, g: 0, b: 255 },    // أزرق
-                { r: 255, g: 255, b: 255 },// أبيض
-            ],
-            colorDuration: 200,       // مدة كل لون بالميلي ثانية
-            flickerSpeed: 50,         // سرعة الوميض
-            glowIntensity: 40,        // شدة التوهج
-        };
-        
-        // ====== الحالة ======
-        let targetX = null;
-        let targetY = null;
-        let isActive = false;
-        let startTime = null;
-        let animationId = null;
-        let currentColorIndex = 0;
-        let lastColorChange = 0;
-        let frame = 0;
-        
-        // ====== ضبط حجم الكانفاس ======
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+        // الألوان لي غتبدل بالزربة
+        const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFFFF', '#000000'];
+        let i = 0;
+        let interval;
+        let isRunning = false;
+
+        function startFixer(event) {
+            event.stopPropagation(); // باش مايحسبش الكليك د البداية فحال كليك د التوقيف
+            document.getElementById('controls').style.display = 'none';
+            
+            // نردوها شاشة كاملة باش تشد القنات كاملين
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            }
+            
+            // سرعة تبدال الألوان (20 ميلي ثانية = سرعة قوية بزاف)
+            interval = setInterval(() => {
+                document.body.style.backgroundColor = colors[i];
+                i = (i + 1) % colors.length;
+            }, 20); 
+            
+            isRunning = true;
         }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-        
-        // ====== تحديد المكان باللمس ======
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            const touch = e.touches[0];
-            setTarget(touch.clientX, touch.clientY);
-        });
-        
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            const touch = e.touches[0];
-            setTarget(touch.clientX, touch.clientY);
-        });
-        
-        // ====== تحديد المكان بالفأرة ======
-        canvas.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            setTarget(e.clientX, e.clientY);
-        });
-        
-        canvas.addEventListener('mousemove', (e) => {
-            if (e.buttons === 1) { // الزر الأيسر مضغوط
-                setTarget(e.clientX, e.clientY);
-            }
-        });
-        
-        function setTarget(x, y) {
-            targetX = x;
-            targetY = y;
-            coordsDisplay.textContent = `X:${Math.round(x)} Y:${Math.round(y)}`;
-            
-            if (!isActive) {
-                startBurning();
-            }
-        }
-        
-        // ====== بدء الحرق ======
-        function startBurning() {
-            isActive = true;
-            startTime = Date.now();
-            overlay.classList.add('hidden');
-            statusText.textContent = '🔥 ناشط';
-            statusDot.style.background = '#ff0';
-            statusDot.style.animation = 'statusPulse 0.5s ease-in-out infinite';
-            stopBtn.style.display = 'inline-block';
-            lastColorChange = performance.now();
-            updateTimer();
-            draw();
-        }
-        
-        // ====== إيقاف الحرق ======
-        function stopBurning() {
-            isActive = false;
-            targetX = null;
-            targetY = null;
-            if (animationId) {
-                cancelAnimationFrame(animationId);
-                animationId = null;
-            }
-            
-            // مسح الشاشة
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // إعادة الواجهة
-            overlay.classList.remove('hidden');
-            statusText.textContent = '⏸ متوقف';
-            statusDot.style.background = '#555';
-            statusDot.style.animation = 'none';
-            statusDot.style.boxShadow = 'none';
-            timerText.textContent = '00:00';
-            coordsDisplay.textContent = 'X:0 Y:0';
-            stopBtn.style.display = 'none';
-            
-            // عرض مدة التشغيل
-            if (startTime) {
-                const totalSeconds = Math.floor((Date.now() - startTime) / 1000);
-                const mins = Math.floor(totalSeconds / 60);
-                const secs = totalSeconds % 60;
-                alert(`⏱️ مدة الجلسة: ${mins} دقيقة و ${secs} ثانية\n\n🔍 افحص الشاشة الآن`);
-            }
-            
-            startTime = null;
-        }
-        
-        // ====== تحديث المؤقت ======
-        function updateTimer() {
-            if (!isActive || !startTime) return;
-            
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const mins = Math.floor(elapsed / 60);
-            const secs = elapsed % 60;
-            timerText.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-            
-            // تغيير اللون كل فترة
-            if (elapsed > 0 && elapsed % 10 === 0) {
-                statusText.textContent = '🔥 ناشط • فحص الآن';
-                setTimeout(() => {
-                    if (isActive) statusText.textContent = '🔥 ناشط';
-                }, 2000);
-            }
-        }
-        
-        // ====== الحلقة الرئيسية للرسم ======
-        function draw(timestamp) {
-            if (!isActive) return;
-            
-            animationId = requestAnimationFrame(draw);
-            frame++;
-            
-            // مسح الشاشة بالأسود
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            if (targetX === null || targetY === null) return;
-            
-            // تغيير اللون الحالي
-            if (timestamp - lastColorChange > CONFIG.colorDuration) {
-                currentColorIndex = (currentColorIndex + 1) % CONFIG.colors.length;
-                lastColorChange = timestamp;
-            }
-            
-            const color = CONFIG.colors[currentColorIndex];
-            
-            // ====== رسم التوهج الخارجي الكبير ======
-            const bigGlow = ctx.createRadialGradient(
-                targetX, targetY, 0,
-                targetX, targetY, CONFIG.glowIntensity
-            );
-            bigGlow.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, 0.9)`);
-            bigGlow.addColorStop(0.3, `rgba(${color.r}, ${color.g}, ${color.b}, 0.6)`);
-            bigGlow.addColorStop(0.6, `rgba(${color.r}, ${color.g}, ${color.b}, 0.2)`);
-            bigGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            
-            ctx.fillStyle = bigGlow;
-            ctx.fillRect(
-                targetX - CONFIG.glowIntensity * 2,
-                targetY - CONFIG.glowIntensity * 2,
-                CONFIG.glowIntensity * 4,
-                CONFIG.glowIntensity * 4
-            );
-            
-            // ====== رسم الحلقة الخارجية ======
-            ctx.beginPath();
-            ctx.arc(targetX, targetY, CONFIG.ringSize, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.8)`;
-            ctx.lineWidth = 2;
-            ctx.shadowColor = `rgb(${color.r}, ${color.g}, ${color.b})`;
-            ctx.shadowBlur = 15;
-            ctx.stroke();
-            
-            // ====== رسم حلقة متوسطة مع وميض ======
-            const midRingPulse = Math.sin(frame * 0.3) * 0.3 + 0.7;
-            ctx.beginPath();
-            ctx.arc(targetX, targetY, CONFIG.ringSize * 0.6, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${midRingPulse})`;
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-            
-            // ====== رسم النقطة المركزية الساطعة ======
-            ctx.beginPath();
-            ctx.arc(targetX, targetY, CONFIG.dotSize, 0, Math.PI * 2);
-            
-            // النقطة المركزية بيضاء دائمًا مع لمسة من اللون
-            const centerGradient = ctx.createRadialGradient(
-                targetX, targetY, 0,
-                targetX, targetY, CONFIG.dotSize
-            );
-            centerGradient.addColorStop(0, '#ffffff');
-            centerGradient.addColorStop(0.5, `rgb(${color.r}, ${color.g}, ${color.b})`);
-            centerGradient.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
-            
-            ctx.fillStyle = centerGradient;
-            ctx.shadowColor = '#ffffff';
-            ctx.shadowBlur = 20;
-            ctx.fill();
-            
-            // ====== رسم نقط بيضاء صغيرة حول المركز ======
-            const sparkCount = 8;
-            for (let i = 0; i < sparkCount; i++) {
-                const angle = (i / sparkCount) * Math.PI * 2 + frame * 0.05;
-                const sparkX = targetX + Math.cos(angle) * CONFIG.ringSize * 0.8;
-                const sparkY = targetY + Math.sin(angle) * CONFIG.ringSize * 0.8;
+
+        // باش نوقفو البرنامج يلا درنا دابل كليك
+        document.body.addEventListener('dblclick', function() {
+            if (isRunning) {
+                clearInterval(interval);
+                document.body.style.backgroundColor = 'black';
+                document.getElementById('controls').style.display = 'block';
                 
-                const sparkAlpha = Math.sin(frame * 0.2 + i) * 0.4 + 0.6;
-                
-                ctx.beginPath();
-                ctx.arc(sparkX, sparkY, 1.5, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${sparkAlpha})`;
-                ctx.shadowColor = '#ffffff';
-                ctx.shadowBlur = 8;
-                ctx.fill();
-            }
-            
-            // ====== إعادة تعيين shadow ======
-            ctx.shadowColor = 'transparent';
-            ctx.shadowBlur = 0;
-            
-            // ====== علامة التصويب ======
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.lineWidth = 1;
-            ctx.setLineDash([2, 4]);
-            
-            // خط أفقي
-            ctx.beginPath();
-            ctx.moveTo(targetX - CONFIG.ringSize - 5, targetY);
-            ctx.lineTo(targetX - CONFIG.ringSize + 5, targetY);
-            ctx.moveTo(targetX + CONFIG.ringSize - 5, targetY);
-            ctx.lineTo(targetX + CONFIG.ringSize + 5, targetY);
-            ctx.stroke();
-            
-            // خط عمودي
-            ctx.beginPath();
-            ctx.moveTo(targetX, targetY - CONFIG.ringSize - 5);
-            ctx.lineTo(targetX, targetY - CONFIG.ringSize + 5);
-            ctx.moveTo(targetX, targetY + CONFIG.ringSize - 5);
-            ctx.lineTo(targetX, targetY + CONFIG.ringSize + 5);
-            ctx.stroke();
-            
-            ctx.setLineDash([]);
-            
-            // ====== تحديث المؤقت كل ثانية ======
-            if (frame % 60 === 0) {
-                updateTimer();
-            }
-        }
-        
-        // ====== منع الخروج من الصفحة ======
-        window.addEventListener('beforeunload', (e) => {
-            if (isActive) {
-                e.preventDefault();
-                e.returnValue = 'الحرق ما زال شغال! أنت متأكد أنك تخرج؟';
-                return e.returnValue;
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+                isRunning = false;
             }
         });
-        
-        // ====== لوحة المفاتيح: Space للإيقاف ======
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' && isActive) {
-                e.preventDefault();
-                stopBurning();
-            }
-        });
-        
-        // ====== إظهار الأزرار عند التحميل ======
-        stopBtn.style.display = 'inline-block';
-        
-        console.log('🔥 Pixel Burner Pro جاهز');
-        console.log('👆 المس الشاشة بإصبعك لتحديد البيكسل المصاب');
-        console.log('🔴🔵⚪ الألوان: أحمر → أزرق → أبيض');
-        console.log('⏹ اضغط Space أو زر الإيقاف للإنهاء');
-        console.log('📱 النافذة تشتغل فوق كل التطبيقات');
     </script>
+
 </body>
 </html>
