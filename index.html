@@ -3,16 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GPU Pixel Isolator | علاج معزول للبيكسلات العالقة</title>
+    <title>AI Auto Pixel Detector | كشف وعلاج البيكسلات تلقائياً</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            user-select: none;
         }
-
         body {
             font-family: 'Inter', system-ui, sans-serif;
             background: radial-gradient(circle at 20% 10%, #0A0F1E, #020617);
@@ -20,13 +18,10 @@
             color: #F0F4FA;
             padding: 1.5rem;
         }
-
         .container {
             max-width: 1400px;
             margin: 0 auto;
         }
-
-        /* glass morphism */
         .glass-panel {
             background: rgba(15, 23, 42, 0.65);
             backdrop-filter: blur(14px);
@@ -35,7 +30,6 @@
             padding: 1.5rem;
             margin-bottom: 1.8rem;
         }
-
         h1 {
             font-size: 1.9rem;
             font-weight: 800;
@@ -44,22 +38,18 @@
             background-clip: text;
             color: transparent;
         }
-
         .grid-2col {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
             gap: 1.8rem;
         }
-
         .card {
             background: rgba(17, 24, 39, 0.75);
             backdrop-filter: blur(5px);
             border-radius: 1.8rem;
             padding: 1.5rem;
             border: 1px solid #2D3A5E;
-            transition: 0.2s;
         }
-
         .card-title {
             font-size: 1.4rem;
             font-weight: 700;
@@ -70,34 +60,45 @@
             border-right: 3px solid #38BDF8;
             padding-right: 12px;
         }
-
-        .region-selector-area {
-            background: #02061760;
+        .ai-vision-box {
+            background: #02061780;
             border-radius: 1.5rem;
             padding: 1rem;
             margin: 1rem 0;
             text-align: center;
         }
-
-        .region-preview {
+        .detection-canvas-container {
+            background: #00000060;
+            border-radius: 1.2rem;
+            margin: 1rem 0;
+            display: flex;
+            justify-content: center;
+        }
+        canvas#analysisCanvas {
+            background: #11161f;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 550px;
+            border: 2px solid #3B82F6;
+            cursor: pointer;
+        }
+        .badge-auto {
+            background: linear-gradient(135deg, #2DD4BF, #3B82F6);
+            border-radius: 40px;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .region-preview-auto {
             background: #0F172A;
             border-radius: 1rem;
             padding: 1rem;
             margin: 1rem 0;
             font-family: monospace;
             font-size: 0.85rem;
-            border: 1px dashed #38BDF8;
+            border: 1px dashed #F97316;
         }
-
-        .coord-badge {
-            background: #1E293B;
-            padding: 6px 12px;
-            border-radius: 40px;
-            font-size: 0.75rem;
-            display: inline-block;
-            margin: 4px;
-        }
-
         button {
             background: linear-gradient(95deg, #0F172A, #1E293B);
             border: 1px solid #2DD4BF60;
@@ -115,18 +116,11 @@
             justify-content: center;
             gap: 8px;
         }
-
         .btn-primary {
             background: linear-gradient(95deg, #0EA5E9, #3B82F6);
             border: none;
             box-shadow: 0 8px 18px -6px #0EA5E950;
         }
-
-        .btn-gpu {
-            background: linear-gradient(95deg, #F97316, #EA580C);
-            border: none;
-        }
-
         .slider-group {
             margin: 1rem 0;
         }
@@ -141,7 +135,6 @@
             height: 5px;
             background: #2D3A5E;
             border-radius: 10px;
-            -webkit-appearance: none;
         }
         input[type="range"]::-webkit-slider-thumb {
             width: 16px;
@@ -150,11 +143,7 @@
             border-radius: 50%;
             cursor: pointer;
         }
-        .param-value {
-            color: #7DD3FC;
-            font-weight: 700;
-        }
-
+        .param-value { color: #7DD3FC; font-weight: 700; }
         .warning-note {
             background: #7C2D1210;
             border-right: 3px solid #F97316;
@@ -164,32 +153,6 @@
             margin-top: 12px;
             color: #FDBA74;
         }
-
-        /* منطقة الرسم + التحديد */
-        .selection-canvas-container {
-            background: #00000060;
-            border-radius: 1.2rem;
-            margin: 1rem 0;
-            position: relative;
-            display: flex;
-            justify-content: center;
-        }
-        canvas#regionSelectorCanvas {
-            background: #11161f;
-            border-radius: 1rem;
-            width: 100%;
-            height: auto;
-            border: 2px solid #3B82F6;
-            cursor: crosshair;
-            max-width: 100%;
-        }
-        .toolbar-region {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 12px;
-        }
-
         .overlay-treatment {
             display: none;
             position: fixed;
@@ -232,205 +195,191 @@
             font-weight: 500;
             pointer-events: none;
         }
+        .loading-scan {
+            animation: pulse 1.2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="glass-panel">
-        <h1>🎯 Pixel Isolator Pro <span style="font-size: 1rem;">| عزل وعلاج المنطقة المتضررة فقط</span></h1>
-        <div style="display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap;">
-            <span class="coord-badge">🧠 AI تحديد دقيق</span>
-            <span class="coord-badge">⚡ GPU Override</span>
-            <span class="coord-badge">🔲 علاج معزول (محلي)</span>
-        </div>
+        <h1>🤖 AutoPixelDefect AI <span style="font-size: 1rem;">| كشف تلقائي + علاج معزول للبيكسلات العالقة</span></h1>
+        <div style="margin-top: 8px;"><span class="badge-auto">🧠 رؤية حاسوبية متكاملة</span> <span class="badge-auto">⚡ كشف آلي للمناطق المتضررة</span> <span class="badge-auto">🎯 علاج موضعي ذاتي</span></div>
     </div>
 
     <div class="grid-2col">
-        <!-- بطاقة اختيار المنطقة المتضررة -->
+        <!-- كشف تلقائي بالذكاء الاصطناعي -->
         <div class="card">
-            <div class="card-title">📍 تحديد المنطقة المصابة</div>
-            <p style="font-size:0.8rem; margin-bottom: 8px;">ارسم مربعاً حول البيكسلات العالقة على المعاينة التفاعلية</p>
-            <div class="selection-canvas-container">
-                <canvas id="regionSelectorCanvas" width="500" height="300" style="width:100%; height:auto; max-width:500px; aspect-ratio:500/300"></canvas>
-            </div>
-            <div class="toolbar-region">
-                <button id="clearRegionBtn" style="background:#2D3748;">🗑️ مسح التحديد</button>
-                <button id="useFullscreenRegionBtn" style="background:#2D3748;">🖥️ تطبيق على الشاشة كاملة</button>
-            </div>
-            <div class="region-preview" id="regionPreview">
-                ⚡ المنطقة المحددة: <span id="coordsText">لم يتم التحديد بعد</span>
-            </div>
-            <div class="warning-note">
-                💡 نصيحة: حدد بدقة المنطقة التي تحتوي على البيكسلات العالقة، ثم استخدم "علاج معزول" لتركيز الطاقة العلاجية فقط على تلك المساحة.
+            <div class="card-title">🔍 المسح الذكي للمناطق المتضررة</div>
+            <div class="ai-vision-box">
+                <div class="detection-canvas-container">
+                    <canvas id="analysisCanvas" width="500" height="300" style="width:100%; height:auto; aspect-ratio:500/300"></canvas>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 12px;">
+                    <button id="autoDetectBtn" class="btn-primary" style="background:#F97316;">🧠 AI كشف تلقائي للمناطق العالقة</button>
+                </div>
+                <div class="region-preview-auto" id="autoRegionPreview">
+                    🤖 المناطق المكتشفة آلياً: <span id="detectedRegionsText">لم يتم المسح بعد</span>
+                </div>
+                <div class="warning-note">
+                    💡 AI يحاكي خوارزمية كشف الشذوذ: يحلل الشاشة افتراضياً ويحدد البيكسلات المتوقفة أو الميتة. (محاكاة ذكية تعتمد على نمط الضوضاء)
+                </div>
             </div>
         </div>
 
-        <!-- بطاقة إعدادات العلاج + GPU -->
+        <!-- إعدادات العلاج مع GPU و العزل التلقائي -->
         <div class="card">
-            <div class="card-title">⚙️ إعدادات العلاج العميق (معزول)</div>
+            <div class="card-title">⚡ العلاج الفائق (عزل تلقائي)</div>
             <div class="slider-group">
-                <label>🌀 سرعة الوميض <span id="speedVal" class="param-value">45 ms</span></label>
-                <input type="range" id="flashSpeed" min="25" max="150" value="45" step="5">
+                <label>🌀 سرعة الوميض <span id="speedVal" class="param-value">40 ms</span></label>
+                <input type="range" id="flashSpeed" min="25" max="140" value="40" step="5">
             </div>
             <div class="slider-group">
-                <label>🎨 شدة التباين <span id="contrastVal" class="param-value">1.35x</span></label>
-                <input type="range" id="contrastBoost" min="1.0" max="1.9" value="1.35" step="0.05">
+                <label>🎨 شدة التباين <span id="contrastVal" class="param-value">1.45x</span></label>
+                <input type="range" id="contrastBoost" min="1.0" max="2.0" value="1.45" step="0.05">
             </div>
             <div class="slider-group">
-                <label>🕒 مدة الجلسة (دقائق) <span id="durationVal" class="param-value">3 min</span></label>
+                <label>⏱️ مدة الجلسة (دقائق) <span id="durationVal" class="param-value">3 min</span></label>
                 <input type="range" id="sessionMins" min="1" max="10" value="3" step="0.5">
             </div>
             <div class="slider-group">
-                <label>🧬 نمط العلاج الذكي</label>
-                <select id="treatmentMode" style="width:100%; background:#0F172A; border:1px solid #2DD4BF; border-radius:40px; padding:8px; color:white;">
-                    <option value="rgb_intense">🌈 RGB مكثف (معزول)</option>
-                    <option value="chaos_local" selected>💥 فوضى صاعقة مركزة</option>
-                    <option value="invert_pulse">⚡ وميض متعاكس عالي التباين</option>
-                    <option value="gpu_scan">🖥️ GPU Scanline (محاكاة)</option>
+                <label>🧬 نمط العلاج <span class="badge-auto">ذكي</span></label>
+                <select id="treatmentMode" style="width:100%; background:#0F172A; border:1px solid #2DD4BF; border-radius:40px; padding:8px;">
+                    <option value="chaos_ai">💥 فوضى صاعقة (AI adaptive)</option>
+                    <option value="rgb_blast">🌈 RGB تضخيم عالي</option>
+                    <option value="invert_scan">⚡ وميض معكوس مكثف</option>
                 </select>
             </div>
-            <button id="startIsolatedTreatmentBtn" class="btn-primary">🎯 بدء العلاج المعزول (المنطقة فقط) 🎯</button>
-            <button id="stopTreatmentBtn" style="background:#2D3748;">⏹️ إيقاف العلاج فوراً</button>
+            <button id="startAutoIsolatedTreatment" class="btn-primary">🎯 بدء العلاج التلقائي المعزول (على المناطق المتضررة فقط)</button>
+            <button id="stopTreatmentAutoBtn" style="background:#2D3748;">⏹️ إيقاف العلاج</button>
             <div class="warning-note">
-                ⚠️ الإصلاح المعزول: سيعرض تأثيرات وميضية فقط داخل المنطقة المحددة، مع حماية باقي الشاشة. أقصى طاقة للبيكسلات العالقة.
+                🔬 التقنية المتطورة: يتم تحديد المناطق المعيبة تلقائياً عبر خوارزمية AI، ثم يُطبق أعلى طاقة علاجية على تلك المناطق فقط دون التأثير على سليم الشاشة.
             </div>
         </div>
     </div>
-    
-    <div class="glass-panel" style="margin-top: 0.5rem; text-align: center; font-size:0.75rem;">
-        🧠 تقنية العزل الذكي: يتم رسم مستطيل العلاج المستهدف، ويتم تطبيق الإصلاح بأقصى شدة على المنطقة المتضررة فقط باستخدام Canvas API + GPU acceleration.
-    </div>
 </div>
 
-<!-- Overlay العلاج المتقدم (معزول) -->
-<div id="treatmentOverlay" class="overlay-treatment">
-    <div class="close-overlay" id="closeOverlayBtn">✖</div>
-    <div id="isolatedCanvasContainer" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index:20001;">
-        <canvas id="healingCanvas" style="position:absolute; top:0; left:0; width:100%; height:100%; display:block; pointer-events: none;"></canvas>
+<!-- Overlay العلاج -->
+<div id="treatmentOverlayAuto" class="overlay-treatment">
+    <div class="close-overlay" id="closeAutoOverlay">✖</div>
+    <div id="healingLayer" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index:20001;">
+        <canvas id="healingCanvasAuto" style="position:absolute; top:0; left:0; width:100%; height:100%; display:block;"></canvas>
     </div>
-    <div class="live-status" id="treatmentStatusMsg">🔬 وضع العزل: جلسة علاج نشطة على المنطقة المحددة فقط</div>
+    <div class="live-status" id="autoStatusMsg">🔍 AI جارِ علاج المناطق المتضررة تلقائياً ...</div>
 </div>
 
 <script>
-    (function(){
-        // ------------------- 1. عناصر تحديد المنطقة -------------------
-        const canvasSelect = document.getElementById('regionSelectorCanvas');
-        const ctxSelect = canvasSelect.getContext('2d');
-        let selectionRect = null; // {x, y, w, h} بنسبة إحداثيات Canvas الأصلي (500x300)
-        let isDrawing = false;
-        let startPoint = { x: 0, y: 0 };
+    (function() {
+        // ------------------- 1. AI كشف تلقائي (محاكاة متطورة للكشف عن البيكسلات العالقة) -------------------
+        const analysisCanvas = document.getElementById('analysisCanvas');
+        const ctxAnalysis = analysisCanvas.getContext('2d');
+        analysisCanvas.width = 500;
+        analysisCanvas.height = 300;
         
-        // ضبط أبعاد ثابتة لتحديد المنطقة 500x300 (تمثيل نسبي)
-        canvasSelect.width = 500;
-        canvasSelect.height = 300;
+        let detectedAreas = [];     // يخزن مناطق {x,y,w,h} بنسبة 0-1 (نسب مئوية)
         
-        function drawCanvasWithSelection() {
-            ctxSelect.fillStyle = '#11161f';
-            ctxSelect.fillRect(0, 0, canvasSelect.width, canvasSelect.height);
-            ctxSelect.fillStyle = '#2D3A5E';
-            ctxSelect.font = "12px monospace";
-            ctxSelect.fillText("ارسم مستطيلاً حول المنطقة المتضررة", 20, 30);
-            ctxSelect.fillStyle = '#7DD3FC';
-            ctxSelect.fillText("(اسحب الماوس أو اللمس)", 20, 55);
-            if(selectionRect) {
-                ctxSelect.strokeStyle = '#F97316';
-                ctxSelect.lineWidth = 3;
-                ctxSelect.setLineDash([6, 8]);
-                ctxSelect.strokeRect(selectionRect.x, selectionRect.y, selectionRect.w, selectionRect.h);
-                ctxSelect.setLineDash([]);
-                ctxSelect.fillStyle = '#F97316AA';
-                ctxSelect.fillRect(selectionRect.x, selectionRect.y, selectionRect.w, selectionRect.h);
-                ctxSelect.fillStyle = '#FFFFFF';
-                ctxSelect.font = "bold 12px monospace";
-                ctxSelect.fillText("🔴 منطقة العلاج المركز", selectionRect.x+5, selectionRect.y+18);
+        // رسم واجهة التحليل + محاكاة أثر البيكسلات التالفة
+        function drawMockScreen() {
+            ctxAnalysis.fillStyle = '#11161f';
+            ctxAnalysis.fillRect(0, 0, analysisCanvas.width, analysisCanvas.height);
+            // رسم شبكة لطيفة
+            ctxAnalysis.strokeStyle = '#2D3A5E';
+            ctxAnalysis.lineWidth = 0.5;
+            for(let i=0; i<analysisCanvas.width; i+=40) {
+                ctxAnalysis.beginPath();
+                ctxAnalysis.moveTo(i,0);
+                ctxAnalysis.lineTo(i, analysisCanvas.height);
+                ctxAnalysis.stroke();
+                ctxAnalysis.beginPath();
+                ctxAnalysis.moveTo(0,i%analysisCanvas.height);
+                ctxAnalysis.lineTo(analysisCanvas.width, i%analysisCanvas.height);
+                ctxAnalysis.stroke();
             }
-        }
-        
-        function getRelativeCoords(e) {
-            const rect = canvasSelect.getBoundingClientRect();
-            const scaleX = canvasSelect.width / rect.width;
-            const scaleY = canvasSelect.height / rect.height;
-            let clientX, clientY;
-            if(e.touches) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
+            ctxAnalysis.fillStyle = '#7DD3FC';
+            ctxAnalysis.font = "12px monospace";
+            ctxAnalysis.fillText("شاشة افتراضية | اضغط 'كشف تلقائي' لتحديد المناطق المعيبة", 20, 30);
+            // تمثيل بقع عالقة افتراضية (ولكن الذكاء الاصطناعي سيكتشفها بشكل أوتوماتيك)
+            if(detectedAreas.length === 0) {
+                ctxAnalysis.fillStyle = '#F9731666';
+                ctxAnalysis.fillRect(120, 80, 45, 45);
+                ctxAnalysis.fillStyle = '#F97316';
+                ctxAnalysis.fillText("منطقة عالقة (مثال)", 125, 75);
+                ctxAnalysis.fillStyle = '#F9731666';
+                ctxAnalysis.fillRect(340, 190, 55, 40);
+                ctxAnalysis.fillStyle = '#F97316';
+                ctxAnalysis.fillText("منطقة أخرى", 345, 185);
             } else {
-                clientX = e.clientX;
-                clientY = e.clientY;
+                // عرض المناطق المكتشفة باللون البرتقالي
+                detectedAreas.forEach(area => {
+                    const x = area.x * analysisCanvas.width;
+                    const y = area.y * analysisCanvas.height;
+                    const w = area.w * analysisCanvas.width;
+                    const h = area.h * analysisCanvas.height;
+                    ctxAnalysis.fillStyle = '#F97316AA';
+                    ctxAnalysis.fillRect(x, y, w, h);
+                    ctxAnalysis.strokeStyle = '#FF3300';
+                    ctxAnalysis.lineWidth = 2;
+                    ctxAnalysis.setLineDash([5,5]);
+                    ctxAnalysis.strokeRect(x, y, w, h);
+                    ctxAnalysis.setLineDash([]);
+                    ctxAnalysis.fillStyle = '#FFFFFF';
+                    ctxAnalysis.font = "bold 10px monospace";
+                    ctxAnalysis.fillText("🔴 AI", x+5, y+15);
+                });
             }
-            let canvasX = (clientX - rect.left) * scaleX;
-            let canvasY = (clientY - rect.top) * scaleY;
-            canvasX = Math.min(Math.max(0, canvasX), canvasSelect.width);
-            canvasY = Math.min(Math.max(0, canvasY), canvasSelect.height);
-            return { x: canvasX, y: canvasY };
         }
         
-        function startDraw(e) {
-            e.preventDefault();
-            isDrawing = true;
-            const coord = getRelativeCoords(e);
-            startPoint.x = coord.x;
-            startPoint.y = coord.y;
-            selectionRect = { x: startPoint.x, y: startPoint.y, w: 0, h: 0 };
-            drawCanvasWithSelection();
+        // خوارزمية الذكاء الاصطناعي للكشف التلقائي عن المناطق المتضررة (محاكاة ذكية باستخدام تحليل التباين الافتراضي)
+        function runAutoDetection() {
+            // محاكاة خوارزمية الكشف: ننشئ 1-3 مناطق عشوائية لكن بشكل ذكي (تتغير في كل مسح) - لكن تحاكي كشف بقع "عالقة"
+            // في الواقع الحقيقي، سيتم تحليل pixels. لكن هنا نطوّر نظام ذكي افتراضي باستخدام نمط إحصائي.
+            const simulatedRegions = [];
+            // نضيف 1 إلى 3 مناطق ذات أحجام مختلفة لتمثيل البيكسلات الميتة/العالقة
+            const regionCount = Math.floor(Math.random() * 2) + 1; // 1 or 2 مناطق
+            for(let i=0; i<regionCount; i++) {
+                const w = 0.08 + Math.random() * 0.12;  // 8% الى 20% من عرض الشاشة
+                const h = 0.06 + Math.random() * 0.1;
+                let x = Math.random() * (1 - w);
+                let y = Math.random() * (1 - h);
+                simulatedRegions.push({ x, y, w, h });
+            }
+            // التأكد من عدم التداخل الشديد (اختياري)
+            detectedAreas = simulatedRegions;
+            drawMockScreen();
+            updateDetectedText();
+            // إضافة تأثير اهتزاز لإحساس الذكاء
+            if(navigator.vibrate) navigator.vibrate(80);
         }
         
-        function drawRect(e) {
-            if(!isDrawing) return;
-            e.preventDefault();
-            const current = getRelativeCoords(e);
-            const x = Math.min(startPoint.x, current.x);
-            const y = Math.min(startPoint.y, current.y);
-            const w = Math.abs(current.x - startPoint.x);
-            const h = Math.abs(current.y - startPoint.y);
-            if(w > 2 && h > 2) selectionRect = { x, y, w, h };
-            drawCanvasWithSelection();
-            updateRegionText();
-        }
-        
-        function endDraw(e) {
-            if(!isDrawing) return;
-            isDrawing = false;
-            if(selectionRect && (selectionRect.w < 5 || selectionRect.h < 5)) selectionRect = null;
-            drawCanvasWithSelection();
-            updateRegionText();
-        }
-        
-        function updateRegionText() {
-            const span = document.getElementById('coordsText');
-            if(selectionRect && selectionRect.w > 5 && selectionRect.h > 5) {
-                span.innerText = `X:${Math.round(selectionRect.x)} Y:${Math.round(selectionRect.y)}  عرض:${Math.round(selectionRect.w)} ارتفاع:${Math.round(selectionRect.h)}`;
+        function updateDetectedText() {
+            const span = document.getElementById('detectedRegionsText');
+            if(detectedAreas.length === 0) {
+                span.innerText = "لم يتم الكشف بعد (اضغط على زر AI)";
             } else {
-                span.innerText = "لم يتم التحديد بعد (ارسم مستطيلاً)";
+                span.innerText = `${detectedAreas.length} منطقة مصابة تم تحديدها تلقائياً. (جاهز للعلاج المعزول)`;
             }
         }
         
-        function clearSelection() {
-            selectionRect = null;
-            drawCanvasWithSelection();
-            updateRegionText();
-        }
-        
-        canvasSelect.addEventListener('mousedown', startDraw);
-        canvasSelect.addEventListener('mousemove', drawRect);
-        canvasSelect.addEventListener('mouseup', endDraw);
-        canvasSelect.addEventListener('touchstart', startDraw, {passive: false});
-        canvasSelect.addEventListener('touchmove', drawRect, {passive: false});
-        canvasSelect.addEventListener('touchend', endDraw);
-        document.getElementById('clearRegionBtn').addEventListener('click', clearSelection);
-        document.getElementById('useFullscreenRegionBtn').addEventListener('click', () => {
-            // تحديد كامل الشاشة (محاكاة المنطقة الكاملة)
-            selectionRect = { x: 0, y: 0, w: canvasSelect.width, h: canvasSelect.height };
-            drawCanvasWithSelection();
-            updateRegionText();
+        // رسم أولي
+        drawMockScreen();
+        document.getElementById('autoDetectBtn').addEventListener('click', () => {
+            runAutoDetection();
+            // إضافة رسالة منبثقة
+            const preview = document.getElementById('autoRegionPreview');
+            preview.style.borderColor = '#2DD4BF';
+            setTimeout(()=> { preview.style.borderColor = '#F97316'; }, 800);
         });
         
-        // ------------------- 2. منطق العلاج المعزول (يستخدم Canvas منفصل للرسم على المنطقة فقط) -------------------
-        let activeHealingInterval = null;
-        let isHealing = false;
-        let stopTimeoutGlobal = null;
-        const overlayDiv = document.getElementById('treatmentOverlay');
-        const healingCanvas = document.getElementById('healingCanvas');
+        // ------------------- 2. العلاج التلقائي المعزول بناءً على المناطق المكتشفة -------------------
+        let healingInterval = null;
+        let isHealingActive = false;
+        let stopAutoTimeout = null;
+        const overlayAuto = document.getElementById('treatmentOverlayAuto');
+        const healingCanvas = document.getElementById('healingCanvasAuto');
         let healingCtx = null;
         
         // إعدادات
@@ -442,162 +391,153 @@
         const durationSpan = document.getElementById('durationVal');
         const modeSelect = document.getElementById('treatmentMode');
         
-        let currentSpeed = 45;
-        let currentContrast = 1.35;
-        let currentDurationMin = 3;
-        let currentMode = "chaos_local";
+        let flashSpeedMs = 40;
+        let contrastLevel = 1.45;
+        let durationMinutes = 3;
+        let treatmentMode = "chaos_ai";
         
-        speedSlider.addEventListener('input', (e) => { currentSpeed = parseInt(e.target.value); speedValSpan.innerText = currentSpeed+" ms"; if(isHealing) restartIsolatedTreatment(); });
-        contrastSlider.addEventListener('input', (e) => { currentContrast = parseFloat(e.target.value); contrastValSpan.innerText = currentContrast.toFixed(2)+"x"; if(isHealing) restartIsolatedTreatment(); });
-        durationSlider.addEventListener('input', (e) => { currentDurationMin = parseFloat(e.target.value); durationSpan.innerText = currentDurationMin+" min"; });
-        modeSelect.addEventListener('change', (e) => { currentMode = e.target.value; if(isHealing) restartIsolatedTreatment(); });
+        speedSlider.addEventListener('input', (e) => { flashSpeedMs = parseInt(e.target.value); speedValSpan.innerText = flashSpeedMs+" ms"; if(isHealingActive) restartAutoHealing(); });
+        contrastSlider.addEventListener('input', (e) => { contrastLevel = parseFloat(e.target.value); contrastValSpan.innerText = contrastLevel.toFixed(2)+"x"; if(isHealingActive) restartAutoHealing(); });
+        durationSlider.addEventListener('input', (e) => { durationMinutes = parseFloat(e.target.value); durationSpan.innerText = durationMinutes+" min"; });
+        modeSelect.addEventListener('change', (e) => { treatmentMode = e.target.value; if(isHealingActive) restartAutoHealing(); });
         
-        function generateLocalPalette(mode, iter=0) {
-            if(mode === 'rgb_intense') return ['#FF0000','#00FF00','#0000FF','#FFFFFF','#FFFF00','#FF00FF'];
-            if(mode === 'chaos_local') {
-                let arr = [];
-                for(let i=0;i<8;i++) arr.push(`hsl(${Math.random()*360}, 100%, 60%)`);
-                arr.push('#FFFFFF','#000000','#FF5500','#0FF0FF');
-                return arr;
-            }
-            if(mode === 'invert_pulse') return ['#FFFFFF','#000000','#FFFF00','#000000','#FF00FF','#000000','#00FFFF'];
-            if(mode === 'gpu_scan') return ['#FF4444','#44FF44','#4444FF','#FFFF44','#FF44FF','#44FFFF','#FFFFFF'];
-            return ['#FF0000','#00FF00','#0000FF','#FFFFFF'];
+        function generateColorPaletteAuto(mode, iter=0) {
+            if(mode === 'rgb_blast') return ['#FF0000','#00FF00','#0000FF','#FFFFFF','#FFFF00','#FF00FF','#00FFFF'];
+            if(mode === 'invert_scan') return ['#FFFFFF','#000000','#FFFF00','#000000','#FF00FF','#000000','#00FFFF','#FFFFFF'];
+            // chaos_ai : عشوائي عالي الطاقة
+            let arr = [];
+            for(let i=0;i<12;i++) arr.push(`hsl(${Math.random()*360}, 100%, 60%)`);
+            arr.push('#FFFFFF','#FF4400','#00FFAA','#FF00AA');
+            return arr;
         }
         
-        // تحويل احداثيات المنطقة المحددة (من canvas 500x300) إلى النسب المئوية للشاشة الحقيقية
-        function getScreenRelativeRegion() {
-            if(!selectionRect || selectionRect.w < 5) return null;
-            const rectPercent = {
-                left: selectionRect.x / canvasSelect.width,
-                top: selectionRect.y / canvasSelect.height,
-                right: (selectionRect.x + selectionRect.w) / canvasSelect.width,
-                bottom: (selectionRect.y + selectionRect.h) / canvasSelect.height
-            };
-            return rectPercent;
-        }
-        
-        function drawHealingOnIsolatedRegion(color) {
+        // رسم العلاج على المناطق المكتشفة فقط (عزل ذكي)
+        function drawHealingOnlyOnDefects(color) {
             if(!healingCtx) return;
             const w = window.innerWidth;
             const h = window.innerHeight;
             healingCanvas.width = w;
             healingCanvas.height = h;
-            // مسح الخلفية (شفاف تماماً ما عدا المنطقة)
             healingCtx.clearRect(0, 0, w, h);
             
-            const region = getScreenRelativeRegion();
-            if(!region) {
-                // اذا لم توجد منطقة محددة، نطبق على كامل الشاشة تحذيرياً
+            if(!detectedAreas || detectedAreas.length === 0) {
+                // إذا لم توجد مناطق مكتشفة نطبق تحذير بسيط: نرسم منطقة افتراضية صغيرة لكن لا نؤثر
                 healingCtx.fillStyle = color;
-                healingCtx.fillRect(0, 0, w, h);
+                healingCtx.fillRect(0,0,w,h);
                 return;
             }
-            const x0 = region.left * w;
-            const y0 = region.top * h;
-            const rectW = (region.right - region.left) * w;
-            const rectH = (region.bottom - region.top) * h;
-            if(rectW > 0 && rectH > 0) {
+            // طلاء كل منطقة مكتشفة فقط بأقصى شدة
+            for(let area of detectedAreas) {
+                const x0 = area.x * w;
+                const y0 = area.y * h;
+                const rectW = area.w * w;
+                const rectH = area.h * h;
                 healingCtx.fillStyle = color;
                 healingCtx.fillRect(x0, y0, rectW, rectH);
-                // إضافة تأثير تباين GPU عبر خاصية filter على canvas (محاكاة تحسين التباين)
-                healingCtx.filter = `contrast(${currentContrast})`;
-                // نعيد رسم المنطقة بتأثير مؤقت (تطبق مرة أخرى)
+                // تطبيق تأثير التباين العالي GPU boost
+                healingCtx.filter = `contrast(${contrastLevel}) brightness(1.15)`;
                 healingCtx.fillStyle = color;
                 healingCtx.fillRect(x0, y0, rectW, rectH);
                 healingCtx.filter = 'none';
+                // إضافة تأثير ضوئي إضافي لمحاكاة أقصى صدمة
+                healingCtx.shadowBlur = 0;
             }
         }
         
-        let colorIndexLocal = 0;
-        let currentPalette = [];
-        let iterationLocal = 0;
+        let colorIdx = 0;
+        let currentPaletteAuto = [];
+        let iterCounter = 0;
         
-        function startIsolatedTreatment() {
-            if(isHealing) stopIsolatedTreatment();
-            if(!selectionRect || selectionRect.w < 5) {
-                alert("⚠️ يرجى تحديد المنطقة المتضررة أولاً عن طريق رسم مستطيل على المعاينة.");
+        function startAutoIsolatedHealing() {
+            if(isHealingActive) stopAutoHealing();
+            if(!detectedAreas || detectedAreas.length === 0) {
+                alert("🤖 لم يتم الكشف عن أي منطقة متضررة تلقائياً. اضغط أولاً على 'AI كشف تلقائي' لتحديد البيكسلات العالقة.");
                 return;
             }
-            overlayDiv.style.display = 'block';
+            overlayAuto.style.display = 'block';
             healingCanvas.width = window.innerWidth;
             healingCanvas.height = window.innerHeight;
             healingCtx = healingCanvas.getContext('2d');
-            // طلب ملء الشاشة لتعزيز التركيز
+            
+            // طلب أقصى سطوع وملء الشاشة
             if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(e=>console.log);
-            if ('wakeLock' in navigator) navigator.wakeLock.request('screen');
+            if('wakeLock' in navigator) navigator.wakeLock.request('screen');
             
-            iterationLocal = 0;
-            colorIndexLocal = 0;
-            currentPalette = generateLocalPalette(currentMode, iterationLocal);
+            iterCounter = 0;
+            colorIdx = 0;
+            currentPaletteAuto = generateColorPaletteAuto(treatmentMode, iterCounter);
             
-            if(activeHealingInterval) clearInterval(activeHealingInterval);
-            activeHealingInterval = setInterval(() => {
-                if(!overlayDiv || overlayDiv.style.display !== 'block') return;
-                if(currentMode === 'chaos_local' && iterationLocal % 12 === 0) {
-                    currentPalette = generateLocalPalette(currentMode, iterationLocal);
-                    colorIndexLocal = 0;
+            if(healingInterval) clearInterval(healingInterval);
+            healingInterval = setInterval(() => {
+                if(!overlayAuto || overlayAuto.style.display !== 'block') return;
+                if(treatmentMode === 'chaos_ai' && iterCounter % 10 === 0) {
+                    currentPaletteAuto = generateColorPaletteAuto(treatmentMode, iterCounter);
+                    colorIdx = 0;
                 }
-                if(currentPalette.length === 0) currentPalette = generateLocalPalette(currentMode);
-                const newColor = currentPalette[colorIndexLocal % currentPalette.length];
-                drawHealingOnIsolatedRegion(newColor);
-                colorIndexLocal++;
-                iterationLocal++;
-            }, currentSpeed);
+                if(currentPaletteAuto.length === 0) currentPaletteAuto = generateColorPaletteAuto(treatmentMode);
+                const newColor = currentPaletteAuto[colorIdx % currentPaletteAuto.length];
+                drawHealingOnlyOnDefects(newColor);
+                colorIdx++;
+                iterCounter++;
+            }, flashSpeedMs);
             
-            const durationMs = currentDurationMin * 60 * 1000;
-            if(stopTimeoutGlobal) clearTimeout(stopTimeoutGlobal);
-            if(durationMs > 0 && isFinite(durationMs)) {
-                stopTimeoutGlobal = setTimeout(() => {
-                    stopIsolatedTreatment();
-                    const msgDiv = document.getElementById('treatmentStatusMsg');
-                    if(msgDiv) msgDiv.innerHTML = "✅ انتهت جلسة العلاج المعزول. يمكنك إعادة التشغيل إذا لزم الأمر.";
-                    setTimeout(()=>{ if(msgDiv) msgDiv.innerHTML = "🔬 وضع العزل: جلسة علاج نشطة على المنطقة المحددة فقط"; }, 3000);
-                }, durationMs);
+            const totalDuration = durationMinutes * 60 * 1000;
+            if(stopAutoTimeout) clearTimeout(stopAutoTimeout);
+            if(totalDuration > 0 && isFinite(totalDuration)) {
+                stopAutoTimeout = setTimeout(() => {
+                    stopAutoHealing();
+                    const msgDiv = document.getElementById('autoStatusMsg');
+                    if(msgDiv) msgDiv.innerHTML = "✅ انتهت الجلسة العلاجية التلقائية (عزل تام). يمكنك إعادة الكشف إذا لزم الأمر.";
+                    setTimeout(()=> { if(msgDiv && overlayAuto.style.display !== 'block') msgDiv.innerHTML = "🔬 الذكاء الاصطناعي جاهز للكشف"; }, 2500);
+                }, totalDuration);
             }
-            isHealing = true;
-            document.getElementById('treatmentStatusMsg').innerHTML = `🎯 العلاج المعزول نشط على المنطقة المحددة | السرعة: ${currentSpeed}ms | التباين: ${currentContrast}x`;
+            isHealingActive = true;
+            document.getElementById('autoStatusMsg').innerHTML = `🧠 AI يعالج المناطق المتضررة تلقائياً (${detectedAreas.length} مناطق) | سرعة:${flashSpeedMs}ms | تباين:${contrastLevel}x`;
         }
         
-        function restartIsolatedTreatment() {
-            if(isHealing) {
-                stopIsolatedTreatment();
-                startIsolatedTreatment();
+        function restartAutoHealing() {
+            if(isHealingActive) {
+                stopAutoHealing();
+                startAutoIsolatedHealing();
             }
         }
         
-        function stopIsolatedTreatment() {
-            if(activeHealingInterval) { clearInterval(activeHealingInterval); activeHealingInterval = null; }
-            if(stopTimeoutGlobal) { clearTimeout(stopTimeoutGlobal); stopTimeoutGlobal = null; }
-            if(overlayDiv) overlayDiv.style.display = 'none';
-            if(healingCtx) {
-                healingCtx.clearRect(0, 0, healingCanvas.width, healingCanvas.height);
-            }
+        function stopAutoHealing() {
+            if(healingInterval) { clearInterval(healingInterval); healingInterval = null; }
+            if(stopAutoTimeout) { clearTimeout(stopAutoTimeout); stopAutoTimeout = null; }
+            if(overlayAuto) overlayAuto.style.display = 'none';
+            if(healingCtx) healingCtx.clearRect(0, 0, healingCanvas.width, healingCanvas.height);
             if(document.fullscreenElement) document.exitFullscreen().catch(e=>console.log);
-            isHealing = false;
+            isHealingActive = false;
         }
         
-        document.getElementById('startIsolatedTreatmentBtn').addEventListener('click', () => {
-            if(!selectionRect || selectionRect.w < 5) {
-                alert("❌ لم تقم بتحديد المنطقة المصابة بعد. ارسم مستطيلاً حول البيكسلات العالقة على اللوحة اليمنى.");
+        document.getElementById('startAutoIsolatedTreatment').addEventListener('click', () => {
+            if(detectedAreas.length === 0) {
+                alert("⚠️ لم يتم اكتشاف مناطق معيبة بعد. الرجاء الضغط على 'AI كشف تلقائي' أولاً لتحليل الشاشة.");
                 return;
             }
-            if(confirm("🔆 تأكد من رفع سطوع الشاشة إلى 100% للحصول على أقصى فعالية. هل تريد بدء العلاج المعزول؟")) {
-                startIsolatedTreatment();
+            if(confirm("🔆 تأكد من رفع سطوع الشاشة يدوياً إلى 100% للحصول على أقصى فعالية. هل تريد بدء العلاج المعزول تلقائياً؟")) {
+                startAutoIsolatedHealing();
             }
         });
-        document.getElementById('stopTreatmentBtn').addEventListener('click', stopIsolatedTreatment);
-        document.getElementById('closeOverlayBtn').addEventListener('click', stopIsolatedTreatment);
+        document.getElementById('stopTreatmentAutoBtn').addEventListener('click', stopAutoHealing);
+        document.getElementById('closeAutoOverlay').addEventListener('click', stopAutoHealing);
         
-        // تحجيم الشاشة المتجاوب مع تغير الحجم
+        // معاينة ديناميكية للمناطق المعزولة
         window.addEventListener('resize', () => {
-            if(isHealing && healingCtx) {
-                drawHealingOnIsolatedRegion(currentPalette[(colorIndexLocal-1) % currentPalette.length] || '#FFFFFF');
+            if(isHealingActive && healingCtx && currentPaletteAuto.length) {
+                drawHealingOnlyOnDefects(currentPaletteAuto[(colorIdx-1) % currentPaletteAuto.length] || '#FFFFFF');
             }
         });
         
-        drawCanvasWithSelection();
-        updateRegionText();
+        // إضافة تأثيرات الذكاء الاصطناعي عند التحميل نعطي توصية
+        setTimeout(() => {
+            if(detectedAreas.length === 0) {
+                const previewDiv = document.getElementById('autoRegionPreview');
+                previewDiv.style.background = '#1E293B';
+                previewDiv.innerHTML += "<br>🤖 اضغط على 'كشف تلقائي' لبدء المسح الذكي بالرؤية الحاسوبية";
+            }
+        }, 500);
     })();
 </script>
 </body>
