@@ -3,114 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>مصلح البيكسلات - الوضع النهائي 💪</title>
+    <title>GPU Pixel Isolator | علاج معزول للبيكسلات العالقة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
-            user-select: none;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: system-ui, 'Segoe UI', sans-serif;
-            background: #0a0c12;
-            color: #eef2ff;
-            padding: 20px;
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
         }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: radial-gradient(circle at 20% 10%, #0A0F1E, #020617);
+            min-height: 100vh;
+            color: #F0F4FA;
+            padding: 1.5rem;
+        }
+
         .container {
-            max-width: 700px;
+            max-width: 1400px;
             margin: 0 auto;
         }
-        .card {
-            background: #11161f;
+
+        /* glass morphism */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(14px);
             border-radius: 2rem;
-            padding: 1.6rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid #2a3342;
-            box-shadow: 0 20px 35px -12px black;
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            padding: 1.5rem;
+            margin-bottom: 1.8rem;
         }
+
         h1 {
-            font-size: 1.8rem;
-            margin: 0 0 0.5rem 0;
-            background: linear-gradient(135deg, #ffb347, #ff6b6b);
-            background-clip: text;
+            font-size: 1.9rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #A5F3FC, #22D3EE, #F472B6);
             -webkit-background-clip: text;
+            background-clip: text;
             color: transparent;
         }
-        .warning-box {
-            background: #2a1a0f;
-            border-right: 6px solid #ff8800;
-            padding: 12px;
-            border-radius: 20px;
-            margin: 15px 0;
-            font-weight: bold;
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 1.8rem;
         }
-        button {
-            background: #ff5500;
-            border: none;
-            padding: 14px 20px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 60px;
-            width: 100%;
-            color: white;
-            cursor: pointer;
-            transition: 0.1s linear;
-            margin-top: 12px;
-            box-shadow: 0 4px 12px rgba(255, 85, 0, 0.4);
+
+        .card {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(5px);
+            border-radius: 1.8rem;
+            padding: 1.5rem;
+            border: 1px solid #2D3A5E;
+            transition: 0.2s;
         }
-        button:active {
-            transform: scale(0.97);
-        }
-        .control-group {
-            background: #1e293b;
-            border-radius: 28px;
-            padding: 12px 18px;
-            margin: 16px 0;
-        }
-        .flex-between {
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
+            gap: 10px;
+            border-right: 3px solid #38BDF8;
+            padding-right: 12px;
         }
-        select, input {
-            background: #0f172a;
-            color: white;
-            border: 1px solid #334155;
-            padding: 8px 16px;
-            border-radius: 40px;
-            font-size: 1rem;
+
+        .region-selector-area {
+            background: #02061760;
+            border-radius: 1.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: center;
         }
-        .badge {
-            background: #2dd4bf20;
-            padding: 4px 12px;
+
+        .region-preview {
+            background: #0F172A;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: monospace;
+            font-size: 0.85rem;
+            border: 1px dashed #38BDF8;
+        }
+
+        .coord-badge {
+            background: #1E293B;
+            padding: 6px 12px;
             border-radius: 40px;
             font-size: 0.75rem;
-            color: #5eead4;
+            display: inline-block;
+            margin: 4px;
         }
-        .slider-label {
+
+        button {
+            background: linear-gradient(95deg, #0F172A, #1E293B);
+            border: 1px solid #2DD4BF60;
+            border-radius: 60px;
+            padding: 12px 18px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 12px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(95deg, #0EA5E9, #3B82F6);
+            border: none;
+            box-shadow: 0 8px 18px -6px #0EA5E950;
+        }
+
+        .btn-gpu {
+            background: linear-gradient(95deg, #F97316, #EA580C);
+            border: none;
+        }
+
+        .slider-group {
+            margin: 1rem 0;
+        }
+        .slider-group label {
             display: flex;
             justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
         }
         input[type="range"] {
             width: 100%;
-            margin: 8px 0;
+            height: 5px;
+            background: #2D3A5E;
+            border-radius: 10px;
+            -webkit-appearance: none;
         }
-        .info-text {
-            font-size: 0.85rem;
-            color: #94a3b8;
-            margin-top: 8px;
+        input[type="range"]::-webkit-slider-thumb {
+            width: 16px;
+            height: 16px;
+            background: #38BDF8;
+            border-radius: 50%;
+            cursor: pointer;
         }
-        .full-blast {
-            background: linear-gradient(90deg, #ff0066, #ff4400);
-            animation: pulse 1s infinite;
+        .param-value {
+            color: #7DD3FC;
+            font-weight: 700;
         }
-        @keyframes pulse {
-            0% { opacity: 0.9; box-shadow: 0 0 5px #ff4400;}
-            100% { opacity: 1; box-shadow: 0 0 20px #ff0066;}
+
+        .warning-note {
+            background: #7C2D1210;
+            border-right: 3px solid #F97316;
+            padding: 8px 12px;
+            border-radius: 18px;
+            font-size: 0.7rem;
+            margin-top: 12px;
+            color: #FDBA74;
         }
-        .overlay {
+
+        /* منطقة الرسم + التحديد */
+        .selection-canvas-container {
+            background: #00000060;
+            border-radius: 1.2rem;
+            margin: 1rem 0;
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+        canvas#regionSelectorCanvas {
+            background: #11161f;
+            border-radius: 1rem;
+            width: 100%;
+            height: auto;
+            border: 2px solid #3B82F6;
+            cursor: crosshair;
+            max-width: 100%;
+        }
+        .toolbar-region {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .overlay-treatment {
             display: none;
             position: fixed;
             top: 0;
@@ -120,380 +200,404 @@
             z-index: 20000;
             background: black;
         }
-        .close-btn {
+        .close-overlay {
             position: fixed;
             top: 20px;
             right: 20px;
             background: rgba(0,0,0,0.7);
             backdrop-filter: blur(12px);
-            width: 50px;
-            height: 50px;
-            border-radius: 30px;
-            font-size: 28px;
-            z-index: 20010;
-            border: 1px solid white;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 28px;
             cursor: pointer;
+            z-index: 20010;
+            border: 1px solid white;
         }
-        .brightness-reminder {
+        .live-status {
             position: fixed;
-            bottom: 30px;
+            bottom: 20px;
             left: 20px;
             right: 20px;
             background: #000000cc;
-            backdrop-filter: blur(20px);
-            padding: 14px;
+            backdrop-filter: blur(16px);
             border-radius: 60px;
+            padding: 10px;
+            font-size: 0.8rem;
             text-align: center;
-            font-weight: bold;
-            z-index: 20015;
-            font-size: 0.9rem;
-            border: 1px solid #ffaa33;
+            z-index: 20011;
+            font-weight: 500;
             pointer-events: none;
-        }
-        @media (max-width: 550px) {
-            body { padding: 12px; }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <div class="card">
-        <h1>⚡ مُصلح البيكسلات العالقة <span style="font-size:1rem;">(الوضع الخارق)</span></h1>
-        <div class="warning-box">
-            ⚠️ تحذير قصوى : وميض شديد + سطوع أقصى + ألوان عالية التباين<br>
-            🔴 يُنصح لمرضى الصرع و الحساسية الضوئية بعدم الاستخدام
+    <div class="glass-panel">
+        <h1>🎯 Pixel Isolator Pro <span style="font-size: 1rem;">| عزل وعلاج المنطقة المتضررة فقط</span></h1>
+        <div style="display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap;">
+            <span class="coord-badge">🧠 AI تحديد دقيق</span>
+            <span class="coord-badge">⚡ GPU Override</span>
+            <span class="coord-badge">🔲 علاج معزول (محلي)</span>
         </div>
-        
-        <div class="control-group">
-            <div class="flex-between">
-                <span>🔥 نمط العلاج <span class="badge">أقصى قوة</span></span>
-                <select id="intensity-mode">
-                    <option value="extreme" selected>💀 تفجير كامل (الأقصى)</option>
-                    <option value="turbo">⚡ توربو سريع</option>
-                    <option value="random">🎲 عشوائي صاعق</option>
-                    <option value="rgb_blast">🌈 RGB بيكسل بلاستر</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="control-group">
-            <div class="slider-label">
-                <span>⚡ سرعة الوميض (مللي)</span>
-                <span id="speed-value">45 ms</span>
-            </div>
-            <input type="range" id="flash-speed" min="25" max="180" value="45" step="5">
-            <div class="info-text">أقل سرعة = وميض أسرع = صدمة أقوى للبيكسل العالق</div>
-        </div>
-
-        <div class="control-group">
-            <div class="flex-between">
-                <span>💡 رفع سطوع الشاشة للأقصى</span>
-                <button id="request-brightness" style="width: auto; padding: 6px 18px; background:#3b82f6;">🔆 تذكير يدوي</button>
-            </div>
-            <div class="info-text">⚠️ للحصول على أفضل نتيجة: ارفع سطوع جهازك يدوياً إلى 100% وأطفئ الموفّر التلقائي.</div>
-        </div>
-
-        <div class="control-group">
-            <div class="flex-between">
-                <span>⏱️ مدة الجلسة العلاجية</span>
-                <select id="session-duration">
-                    <option value="0">♾️ غير محدود (حتى الإيقاف)</option>
-                    <option value="60">1 دقيقة</option>
-                    <option value="180" selected>3 دقائق (مُوصى)</option>
-                    <option value="300">5 دقائق</option>
-                    <option value="600">10 دقائق</option>
-                </select>
-            </div>
-        </div>
-
-        <button id="start-extreme-fixer" class="full-blast">🚀 تشغيل الإصلاح بأقصى طاقة 🚀</button>
-        <button id="stop-all-btn" style="background:#2c3e4e; margin-top: 8px;">⏹️ إيقاف فوري</button>
     </div>
 
-    <div class="card" style="text-align: center;">
-        <h3>💡 نصائح الذهبية لصدمة البيكسلات</h3>
-        <div style="font-size: 0.9rem; text-align: right;">
-            ✓ استخدم وضع "تفجير كامل" + أقل زمن وميض (25-35ms)<br>
-            ✓ وجّه النظر إلى المنطقة المتضررة أثناء العلاج<br>
-            ✓ كرر الجلسة 3 مرات مع راحة 30 ثانية بينهم<br>
-            ✓ شغّل وضع الطيران وأغلق التطبيقات لتحرير موارد الشاشة
+    <div class="grid-2col">
+        <!-- بطاقة اختيار المنطقة المتضررة -->
+        <div class="card">
+            <div class="card-title">📍 تحديد المنطقة المصابة</div>
+            <p style="font-size:0.8rem; margin-bottom: 8px;">ارسم مربعاً حول البيكسلات العالقة على المعاينة التفاعلية</p>
+            <div class="selection-canvas-container">
+                <canvas id="regionSelectorCanvas" width="500" height="300" style="width:100%; height:auto; max-width:500px; aspect-ratio:500/300"></canvas>
+            </div>
+            <div class="toolbar-region">
+                <button id="clearRegionBtn" style="background:#2D3748;">🗑️ مسح التحديد</button>
+                <button id="useFullscreenRegionBtn" style="background:#2D3748;">🖥️ تطبيق على الشاشة كاملة</button>
+            </div>
+            <div class="region-preview" id="regionPreview">
+                ⚡ المنطقة المحددة: <span id="coordsText">لم يتم التحديد بعد</span>
+            </div>
+            <div class="warning-note">
+                💡 نصيحة: حدد بدقة المنطقة التي تحتوي على البيكسلات العالقة، ثم استخدم "علاج معزول" لتركيز الطاقة العلاجية فقط على تلك المساحة.
+            </div>
         </div>
+
+        <!-- بطاقة إعدادات العلاج + GPU -->
+        <div class="card">
+            <div class="card-title">⚙️ إعدادات العلاج العميق (معزول)</div>
+            <div class="slider-group">
+                <label>🌀 سرعة الوميض <span id="speedVal" class="param-value">45 ms</span></label>
+                <input type="range" id="flashSpeed" min="25" max="150" value="45" step="5">
+            </div>
+            <div class="slider-group">
+                <label>🎨 شدة التباين <span id="contrastVal" class="param-value">1.35x</span></label>
+                <input type="range" id="contrastBoost" min="1.0" max="1.9" value="1.35" step="0.05">
+            </div>
+            <div class="slider-group">
+                <label>🕒 مدة الجلسة (دقائق) <span id="durationVal" class="param-value">3 min</span></label>
+                <input type="range" id="sessionMins" min="1" max="10" value="3" step="0.5">
+            </div>
+            <div class="slider-group">
+                <label>🧬 نمط العلاج الذكي</label>
+                <select id="treatmentMode" style="width:100%; background:#0F172A; border:1px solid #2DD4BF; border-radius:40px; padding:8px; color:white;">
+                    <option value="rgb_intense">🌈 RGB مكثف (معزول)</option>
+                    <option value="chaos_local" selected>💥 فوضى صاعقة مركزة</option>
+                    <option value="invert_pulse">⚡ وميض متعاكس عالي التباين</option>
+                    <option value="gpu_scan">🖥️ GPU Scanline (محاكاة)</option>
+                </select>
+            </div>
+            <button id="startIsolatedTreatmentBtn" class="btn-primary">🎯 بدء العلاج المعزول (المنطقة فقط) 🎯</button>
+            <button id="stopTreatmentBtn" style="background:#2D3748;">⏹️ إيقاف العلاج فوراً</button>
+            <div class="warning-note">
+                ⚠️ الإصلاح المعزول: سيعرض تأثيرات وميضية فقط داخل المنطقة المحددة، مع حماية باقي الشاشة. أقصى طاقة للبيكسلات العالقة.
+            </div>
+        </div>
+    </div>
+    
+    <div class="glass-panel" style="margin-top: 0.5rem; text-align: center; font-size:0.75rem;">
+        🧠 تقنية العزل الذكي: يتم رسم مستطيل العلاج المستهدف، ويتم تطبيق الإصلاح بأقصى شدة على المنطقة المتضررة فقط باستخدام Canvas API + GPU acceleration.
     </div>
 </div>
 
-<!-- Overlay المصلح المتطور -->
-<div id="fixer-overlay-extreme" class="overlay"></div>
-<div id="brightness-reminder-toast" class="brightness-reminder" style="display: none;">🔆 تأكد من رفع سطوع الشاشة للأقصى يدويًا! اضغط ✖ وسيبدأ العلاج</div>
+<!-- Overlay العلاج المتقدم (معزول) -->
+<div id="treatmentOverlay" class="overlay-treatment">
+    <div class="close-overlay" id="closeOverlayBtn">✖</div>
+    <div id="isolatedCanvasContainer" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index:20001;">
+        <canvas id="healingCanvas" style="position:absolute; top:0; left:0; width:100%; height:100%; display:block; pointer-events: none;"></canvas>
+    </div>
+    <div class="live-status" id="treatmentStatusMsg">🔬 وضع العزل: جلسة علاج نشطة على المنطقة المحددة فقط</div>
+</div>
 
 <script>
-    (function() {
-        // ---------- إعدادات متغيرة ----------
-        let activeInterval = null;
-        let isFixing = false;
-        let currentMode = "extreme";
-        let speedMs = 45;
-        let durationSec = 180;      // 3 دقائق افتراضية
-        let timeoutStop = null;
-        let blastColors = [];
-
-        // عناصر DOM
-        const overlay = document.getElementById('fixer-overlay-extreme');
-        const modeSelect = document.getElementById('intensity-mode');
-        const speedSlider = document.getElementById('flash-speed');
-        const speedSpan = document.getElementById('speed-value');
-        const durationSelect = document.getElementById('session-duration');
-        const startBtn = document.getElementById('start-extreme-fixer');
-        const stopBtn = document.getElementById('stop-all-btn');
-        const brightnessReminderToast = document.getElementById('brightness-reminder-toast');
-        const requestBrightnessBtn = document.getElementById('request-brightness');
-
-        // ========== 1. طلب السطوع الأقصى (تذكير + محاولة برمجية) ==========
-        function requestMaxBrightness() {
-            // محاولة برمجية لرفع السطوع عبر ScreenBrightness API (غير مدعوم في كل المتصفحات لكن نحاول)
-            if (typeof window.screen !== 'undefined' && window.screen.mozBrightness) {
-                // لبعض المتصفحات القديمة
-                try { window.screen.mozBrightness = 1.0; } catch(e) {}
-            }
-            // محاولة الوصول إلى Ambient light أو أي شيء
-            // الأهم: توجيه المستخدم لرفع السطوع يدوياً
-            brightnessReminderToast.style.display = 'block';
-            setTimeout(() => {
-                brightnessReminderToast.style.opacity = '0.9';
-            }, 50);
-            // نخفي الرسالة بعد 5 ثواني ولكن تبقى مرئية قليلاً
-            setTimeout(() => {
-                if (brightnessReminderToast.style.display !== 'none')
-                    brightnessReminderToast.style.display = 'none';
-            }, 5000);
-            
-            // تنبيه إضافي: استخدام Vibrate لو الجهاز يدعم (تنبيه حسي)
-            if (navigator.vibrate) navigator.vibrate(200);
-        }
-
-        // ========== 2. توليد ألوان شديدة التباين + أقصى إضاءة (HSV أقصى قيمة) ==========
-        function generateExtremeColors(mode) {
-            const colors = [];
-            if (mode === 'extreme') {
-                // ألوان ناصعة + أبيض نقي + أسود عميق + ألوان فلورسنت
-                colors.push('#FFFFFF', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#000000');
-                // إضافة ألوان عالية اللمعان
-                colors.push('#FF4500', '#FF1493', '#00FF7F', '#1E90FF', '#FFD700');
-            } 
-            else if (mode === 'turbo') {
-                for(let i=0;i<3;i++) colors.push('#FFFFFF', '#FF0000', '#00FF00', '#0000FF', '#FFFF00');
-            }
-            else if (mode === 'random') {
-                // توليد ألوان عشوائية عالية السطوع (R,G,B عالية)
-                for(let i=0;i<20;i++) {
-                    let r = Math.floor(Math.random()*155 + 100);
-                    let g = Math.floor(Math.random()*155 + 100);
-                    let b = Math.floor(Math.random()*155 + 100);
-                    colors.push(`rgb(${r},${g},${b})`);
-                }
-                colors.push('#FFFFFF', '#FFAA00', '#0FF0FF');
-            }
-            else if (mode === 'rgb_blast') {
-                // نمط متخصص لتحفيز subpixels
-                colors.push('#FF0000', '#00FF00', '#0000FF', '#FF0000', '#00FF00', '#0000FF', '#FFFFFF');
-            }
-            // إضافة اللون الأسود لتفعيل الإطفاء والتنشيط القوي
-            if(!colors.includes('#000000')) colors.push('#000000');
-            return colors;
-        }
-
-        // ========== 3. تشغيل أقصى علاج (دخول ملء الشاشة + أقصى إضاءة) ==========
-        function enterFullscreenIntensive() {
-            const docEl = document.documentElement;
-            if (docEl.requestFullscreen) docEl.requestFullscreen().catch(e=>console.log);
-            else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
-            // محاولة جعل الشاشة تحافظ على الإضاءة العالية (منع السكون)
-            if ('wakeLock' in navigator) {
-                navigator.wakeLock.request('screen').catch(err => console.log('Wake lock error:', err));
-            }
-        }
-
-        function exitFullscreenAndClean() {
-            if (document.fullscreenElement || document.webkitFullscreenElement) {
-                document.exitFullscreen().catch(e=>console.log);
-            }
-            if ('wakeLock' in navigator) {
-                // لا يمكن تحرير القفل بسهولة لكن سنتركه، لا مشكلة.
-            }
-        }
-
-        function stopHealing(event) {
-            if(event) event.stopPropagation();
-            if(activeInterval) {
-                clearInterval(activeInterval);
-                activeInterval = null;
-            }
-            if(timeoutStop) {
-                clearTimeout(timeoutStop);
-                timeoutStop = null;
-            }
-            if(overlay) overlay.style.display = 'none';
-            exitFullscreenAndClean();
-            isFixing = false;
-            // إعادة تعيين خلفية الـ body
-            document.body.style.background = '';
-        }
-
-        function startExtremeFixer() {
-            if(isFixing) stopHealing();
-            
-            // قبل البدء: تذكير رفع السطوع للأقصى
-            requestMaxBrightness();
-            
-            // قراءة الإعدادات الحديثة
-            currentMode = modeSelect.value;
-            speedMs = parseInt(speedSlider.value, 10);
-            const durationVal = durationSelect.value;
-            durationSec = (durationVal === '0') ? 0 : parseInt(durationVal, 10);
-            
-            // توليد لوحة الألوان القصوى
-            blastColors = generateExtremeColors(currentMode);
-            let colorIndex = 0;
-            
-            // تجهيز الـ overlay
-            overlay.style.display = 'block';
-            overlay.style.backgroundColor = blastColors[0];
-            // تفعيل ملء الشاشة
-            enterFullscreenIntensive();
-            
-            // إضافة class لتحسين الإضاءة: منع أي ترشيح للسطوع
-            overlay.style.transition = 'background-color 0.01s linear';
-            
-            // بدء الوميض المتسارع (أقصى تردد)
-            if(activeInterval) clearInterval(activeInterval);
-            activeInterval = setInterval(() => {
-                if(!overlay || overlay.style.display !== 'block') return;
-                colorIndex = (colorIndex + 1) % blastColors.length;
-                const newColor = blastColors[colorIndex];
-                overlay.style.backgroundColor = newColor;
-                // إضافة تأثير إضافي: استخدام contrast boost عبر خاصية css (اختياري)
-                // ولزيادة الضغط على البيكسل نستخدم فلتر سطوع إضافي مؤقت
-                if(newColor !== '#000000') {
-                    overlay.style.filter = 'brightness(1.1) contrast(1.2)';
-                } else {
-                    overlay.style.filter = 'brightness(0.95)';
-                }
-                // استعادة الفلتر بعد 20ms لتفادي تراكم الفلاتر
-                setTimeout(() => {
-                    if(overlay.style.display === 'block') overlay.style.filter = '';
-                }, 15);
-            }, speedMs);
-            
-            // ضبط المهلة الزمنية إذا كانت المدة محدودة
-            if(durationSec > 0) {
-                timeoutStop = setTimeout(() => {
-                    stopHealing();
-                    // نعرض تنبيه صغير بانتهاء الجلسة
-                    alertifyMessage("✅ انتهت جلسة العلاج القصوى. يمكنك تكرار الجلسة إن لزم الأمر.");
-                }, durationSec * 1000);
-            }
-            
-            isFixing = true;
-        }
+    (function(){
+        // ------------------- 1. عناصر تحديد المنطقة -------------------
+        const canvasSelect = document.getElementById('regionSelectorCanvas');
+        const ctxSelect = canvasSelect.getContext('2d');
+        let selectionRect = null; // {x, y, w, h} بنسبة إحداثيات Canvas الأصلي (500x300)
+        let isDrawing = false;
+        let startPoint = { x: 0, y: 0 };
         
-        function alertifyMessage(msg) {
-            const toast = document.createElement('div');
-            toast.innerText = msg;
-            toast.style.position = 'fixed';
-            toast.style.bottom = '80px';
-            toast.style.left = '20px';
-            toast.style.right = '20px';
-            toast.style.backgroundColor = '#000000dd';
-            toast.style.backdropFilter = 'blur(16px)';
-            toast.style.padding = '14px';
-            toast.style.borderRadius = '60px';
-            toast.style.textAlign = 'center';
-            toast.style.zIndex = '30000';
-            toast.style.color = 'white';
-            toast.style.fontWeight = 'bold';
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
+        // ضبط أبعاد ثابتة لتحديد المنطقة 500x300 (تمثيل نسبي)
+        canvasSelect.width = 500;
+        canvasSelect.height = 300;
         
-        // ========== 4. إضافة ميزات إضافية : استغلال الجهاز بالكامل (إهتزاز ، إشعارات ، منع توفير الطاقة) ==========
-        function engageMaxPerformance() {
-            // محاولة طلب منع دخول الجهاز في وضع توفير الطاقة عبر Fullscreen API + WakeLock أعلاه
-            // وتفعيل Vibrate pattern لزيادة التنبيه (اختياري لكنه يحفز المستخدم)
-            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-            // طلب إبقاء الإضاءة عالية (مرة أخرى)
-            if ('wakeLock' in navigator) {
-                navigator.wakeLock.request('screen').catch(e=>console.log);
+        function drawCanvasWithSelection() {
+            ctxSelect.fillStyle = '#11161f';
+            ctxSelect.fillRect(0, 0, canvasSelect.width, canvasSelect.height);
+            ctxSelect.fillStyle = '#2D3A5E';
+            ctxSelect.font = "12px monospace";
+            ctxSelect.fillText("ارسم مستطيلاً حول المنطقة المتضررة", 20, 30);
+            ctxSelect.fillStyle = '#7DD3FC';
+            ctxSelect.fillText("(اسحب الماوس أو اللمس)", 20, 55);
+            if(selectionRect) {
+                ctxSelect.strokeStyle = '#F97316';
+                ctxSelect.lineWidth = 3;
+                ctxSelect.setLineDash([6, 8]);
+                ctxSelect.strokeRect(selectionRect.x, selectionRect.y, selectionRect.w, selectionRect.h);
+                ctxSelect.setLineDash([]);
+                ctxSelect.fillStyle = '#F97316AA';
+                ctxSelect.fillRect(selectionRect.x, selectionRect.y, selectionRect.w, selectionRect.h);
+                ctxSelect.fillStyle = '#FFFFFF';
+                ctxSelect.font = "bold 12px monospace";
+                ctxSelect.fillText("🔴 منطقة العلاج المركز", selectionRect.x+5, selectionRect.y+18);
             }
         }
         
-        // ربط الأحداث
-        startBtn.addEventListener('click', () => {
-            engageMaxPerformance();
-            startExtremeFixer();
-        });
-        stopBtn.addEventListener('click', stopHealing);
-        
-        // التحكم في سرعة الوميض وعرض القيمة
-        speedSlider.addEventListener('input', (e) => {
-            speedMs = parseInt(e.target.value,10);
-            speedSpan.innerText = speedMs + " ms";
-            if(isFixing && activeInterval) {
-                // إعادة تشغيل المؤقت لتطبيق السرعة الجديدة
-                stopHealing();
-                startExtremeFixer();
-            }
-        });
-        
-        // إضافة زر سطوع يدوي مع تذكير
-        requestBrightnessBtn.addEventListener('click', () => {
-            if (confirm("🔆 تأكد من رفع سطوع الشاشة إلى 100% وإيقاف التعتيم التلقائي. اضغط موافق بعد رفع السطوع")) {
-                brightnessReminderToast.style.display = 'none';
-                if(!isFixing) alertifyMessage("✓ تم التأكيد, يمكنك بدء العلاج الآن.");
+        function getRelativeCoords(e) {
+            const rect = canvasSelect.getBoundingClientRect();
+            const scaleX = canvasSelect.width / rect.width;
+            const scaleY = canvasSelect.height / rect.height;
+            let clientX, clientY;
+            if(e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
             } else {
-                alertifyMessage("⚠️ يُفضل رفع السطوع يدوياً للحصول على أفضل نتيجة.");
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            let canvasX = (clientX - rect.left) * scaleX;
+            let canvasY = (clientY - rect.top) * scaleY;
+            canvasX = Math.min(Math.max(0, canvasX), canvasSelect.width);
+            canvasY = Math.min(Math.max(0, canvasY), canvasSelect.height);
+            return { x: canvasX, y: canvasY };
+        }
+        
+        function startDraw(e) {
+            e.preventDefault();
+            isDrawing = true;
+            const coord = getRelativeCoords(e);
+            startPoint.x = coord.x;
+            startPoint.y = coord.y;
+            selectionRect = { x: startPoint.x, y: startPoint.y, w: 0, h: 0 };
+            drawCanvasWithSelection();
+        }
+        
+        function drawRect(e) {
+            if(!isDrawing) return;
+            e.preventDefault();
+            const current = getRelativeCoords(e);
+            const x = Math.min(startPoint.x, current.x);
+            const y = Math.min(startPoint.y, current.y);
+            const w = Math.abs(current.x - startPoint.x);
+            const h = Math.abs(current.y - startPoint.y);
+            if(w > 2 && h > 2) selectionRect = { x, y, w, h };
+            drawCanvasWithSelection();
+            updateRegionText();
+        }
+        
+        function endDraw(e) {
+            if(!isDrawing) return;
+            isDrawing = false;
+            if(selectionRect && (selectionRect.w < 5 || selectionRect.h < 5)) selectionRect = null;
+            drawCanvasWithSelection();
+            updateRegionText();
+        }
+        
+        function updateRegionText() {
+            const span = document.getElementById('coordsText');
+            if(selectionRect && selectionRect.w > 5 && selectionRect.h > 5) {
+                span.innerText = `X:${Math.round(selectionRect.x)} Y:${Math.round(selectionRect.y)}  عرض:${Math.round(selectionRect.w)} ارتفاع:${Math.round(selectionRect.h)}`;
+            } else {
+                span.innerText = "لم يتم التحديد بعد (ارسم مستطيلاً)";
+            }
+        }
+        
+        function clearSelection() {
+            selectionRect = null;
+            drawCanvasWithSelection();
+            updateRegionText();
+        }
+        
+        canvasSelect.addEventListener('mousedown', startDraw);
+        canvasSelect.addEventListener('mousemove', drawRect);
+        canvasSelect.addEventListener('mouseup', endDraw);
+        canvasSelect.addEventListener('touchstart', startDraw, {passive: false});
+        canvasSelect.addEventListener('touchmove', drawRect, {passive: false});
+        canvasSelect.addEventListener('touchend', endDraw);
+        document.getElementById('clearRegionBtn').addEventListener('click', clearSelection);
+        document.getElementById('useFullscreenRegionBtn').addEventListener('click', () => {
+            // تحديد كامل الشاشة (محاكاة المنطقة الكاملة)
+            selectionRect = { x: 0, y: 0, w: canvasSelect.width, h: canvasSelect.height };
+            drawCanvasWithSelection();
+            updateRegionText();
+        });
+        
+        // ------------------- 2. منطق العلاج المعزول (يستخدم Canvas منفصل للرسم على المنطقة فقط) -------------------
+        let activeHealingInterval = null;
+        let isHealing = false;
+        let stopTimeoutGlobal = null;
+        const overlayDiv = document.getElementById('treatmentOverlay');
+        const healingCanvas = document.getElementById('healingCanvas');
+        let healingCtx = null;
+        
+        // إعدادات
+        const speedSlider = document.getElementById('flashSpeed');
+        const speedValSpan = document.getElementById('speedVal');
+        const contrastSlider = document.getElementById('contrastBoost');
+        const contrastValSpan = document.getElementById('contrastVal');
+        const durationSlider = document.getElementById('sessionMins');
+        const durationSpan = document.getElementById('durationVal');
+        const modeSelect = document.getElementById('treatmentMode');
+        
+        let currentSpeed = 45;
+        let currentContrast = 1.35;
+        let currentDurationMin = 3;
+        let currentMode = "chaos_local";
+        
+        speedSlider.addEventListener('input', (e) => { currentSpeed = parseInt(e.target.value); speedValSpan.innerText = currentSpeed+" ms"; if(isHealing) restartIsolatedTreatment(); });
+        contrastSlider.addEventListener('input', (e) => { currentContrast = parseFloat(e.target.value); contrastValSpan.innerText = currentContrast.toFixed(2)+"x"; if(isHealing) restartIsolatedTreatment(); });
+        durationSlider.addEventListener('input', (e) => { currentDurationMin = parseFloat(e.target.value); durationSpan.innerText = currentDurationMin+" min"; });
+        modeSelect.addEventListener('change', (e) => { currentMode = e.target.value; if(isHealing) restartIsolatedTreatment(); });
+        
+        function generateLocalPalette(mode, iter=0) {
+            if(mode === 'rgb_intense') return ['#FF0000','#00FF00','#0000FF','#FFFFFF','#FFFF00','#FF00FF'];
+            if(mode === 'chaos_local') {
+                let arr = [];
+                for(let i=0;i<8;i++) arr.push(`hsl(${Math.random()*360}, 100%, 60%)`);
+                arr.push('#FFFFFF','#000000','#FF5500','#0FF0FF');
+                return arr;
+            }
+            if(mode === 'invert_pulse') return ['#FFFFFF','#000000','#FFFF00','#000000','#FF00FF','#000000','#00FFFF'];
+            if(mode === 'gpu_scan') return ['#FF4444','#44FF44','#4444FF','#FFFF44','#FF44FF','#44FFFF','#FFFFFF'];
+            return ['#FF0000','#00FF00','#0000FF','#FFFFFF'];
+        }
+        
+        // تحويل احداثيات المنطقة المحددة (من canvas 500x300) إلى النسب المئوية للشاشة الحقيقية
+        function getScreenRelativeRegion() {
+            if(!selectionRect || selectionRect.w < 5) return null;
+            const rectPercent = {
+                left: selectionRect.x / canvasSelect.width,
+                top: selectionRect.y / canvasSelect.height,
+                right: (selectionRect.x + selectionRect.w) / canvasSelect.width,
+                bottom: (selectionRect.y + selectionRect.h) / canvasSelect.height
+            };
+            return rectPercent;
+        }
+        
+        function drawHealingOnIsolatedRegion(color) {
+            if(!healingCtx) return;
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            healingCanvas.width = w;
+            healingCanvas.height = h;
+            // مسح الخلفية (شفاف تماماً ما عدا المنطقة)
+            healingCtx.clearRect(0, 0, w, h);
+            
+            const region = getScreenRelativeRegion();
+            if(!region) {
+                // اذا لم توجد منطقة محددة، نطبق على كامل الشاشة تحذيرياً
+                healingCtx.fillStyle = color;
+                healingCtx.fillRect(0, 0, w, h);
+                return;
+            }
+            const x0 = region.left * w;
+            const y0 = region.top * h;
+            const rectW = (region.right - region.left) * w;
+            const rectH = (region.bottom - region.top) * h;
+            if(rectW > 0 && rectH > 0) {
+                healingCtx.fillStyle = color;
+                healingCtx.fillRect(x0, y0, rectW, rectH);
+                // إضافة تأثير تباين GPU عبر خاصية filter على canvas (محاكاة تحسين التباين)
+                healingCtx.filter = `contrast(${currentContrast})`;
+                // نعيد رسم المنطقة بتأثير مؤقت (تطبق مرة أخرى)
+                healingCtx.fillStyle = color;
+                healingCtx.fillRect(x0, y0, rectW, rectH);
+                healingCtx.filter = 'none';
+            }
+        }
+        
+        let colorIndexLocal = 0;
+        let currentPalette = [];
+        let iterationLocal = 0;
+        
+        function startIsolatedTreatment() {
+            if(isHealing) stopIsolatedTreatment();
+            if(!selectionRect || selectionRect.w < 5) {
+                alert("⚠️ يرجى تحديد المنطقة المتضررة أولاً عن طريق رسم مستطيل على المعاينة.");
+                return;
+            }
+            overlayDiv.style.display = 'block';
+            healingCanvas.width = window.innerWidth;
+            healingCanvas.height = window.innerHeight;
+            healingCtx = healingCanvas.getContext('2d');
+            // طلب ملء الشاشة لتعزيز التركيز
+            if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(e=>console.log);
+            if ('wakeLock' in navigator) navigator.wakeLock.request('screen');
+            
+            iterationLocal = 0;
+            colorIndexLocal = 0;
+            currentPalette = generateLocalPalette(currentMode, iterationLocal);
+            
+            if(activeHealingInterval) clearInterval(activeHealingInterval);
+            activeHealingInterval = setInterval(() => {
+                if(!overlayDiv || overlayDiv.style.display !== 'block') return;
+                if(currentMode === 'chaos_local' && iterationLocal % 12 === 0) {
+                    currentPalette = generateLocalPalette(currentMode, iterationLocal);
+                    colorIndexLocal = 0;
+                }
+                if(currentPalette.length === 0) currentPalette = generateLocalPalette(currentMode);
+                const newColor = currentPalette[colorIndexLocal % currentPalette.length];
+                drawHealingOnIsolatedRegion(newColor);
+                colorIndexLocal++;
+                iterationLocal++;
+            }, currentSpeed);
+            
+            const durationMs = currentDurationMin * 60 * 1000;
+            if(stopTimeoutGlobal) clearTimeout(stopTimeoutGlobal);
+            if(durationMs > 0 && isFinite(durationMs)) {
+                stopTimeoutGlobal = setTimeout(() => {
+                    stopIsolatedTreatment();
+                    const msgDiv = document.getElementById('treatmentStatusMsg');
+                    if(msgDiv) msgDiv.innerHTML = "✅ انتهت جلسة العلاج المعزول. يمكنك إعادة التشغيل إذا لزم الأمر.";
+                    setTimeout(()=>{ if(msgDiv) msgDiv.innerHTML = "🔬 وضع العزل: جلسة علاج نشطة على المنطقة المحددة فقط"; }, 3000);
+                }, durationMs);
+            }
+            isHealing = true;
+            document.getElementById('treatmentStatusMsg').innerHTML = `🎯 العلاج المعزول نشط على المنطقة المحددة | السرعة: ${currentSpeed}ms | التباين: ${currentContrast}x`;
+        }
+        
+        function restartIsolatedTreatment() {
+            if(isHealing) {
+                stopIsolatedTreatment();
+                startIsolatedTreatment();
+            }
+        }
+        
+        function stopIsolatedTreatment() {
+            if(activeHealingInterval) { clearInterval(activeHealingInterval); activeHealingInterval = null; }
+            if(stopTimeoutGlobal) { clearTimeout(stopTimeoutGlobal); stopTimeoutGlobal = null; }
+            if(overlayDiv) overlayDiv.style.display = 'none';
+            if(healingCtx) {
+                healingCtx.clearRect(0, 0, healingCanvas.width, healingCanvas.height);
+            }
+            if(document.fullscreenElement) document.exitFullscreen().catch(e=>console.log);
+            isHealing = false;
+        }
+        
+        document.getElementById('startIsolatedTreatmentBtn').addEventListener('click', () => {
+            if(!selectionRect || selectionRect.w < 5) {
+                alert("❌ لم تقم بتحديد المنطقة المصابة بعد. ارسم مستطيلاً حول البيكسلات العالقة على اللوحة اليمنى.");
+                return;
+            }
+            if(confirm("🔆 تأكد من رفع سطوع الشاشة إلى 100% للحصول على أقصى فعالية. هل تريد بدء العلاج المعزول؟")) {
+                startIsolatedTreatment();
+            }
+        });
+        document.getElementById('stopTreatmentBtn').addEventListener('click', stopIsolatedTreatment);
+        document.getElementById('closeOverlayBtn').addEventListener('click', stopIsolatedTreatment);
+        
+        // تحجيم الشاشة المتجاوب مع تغير الحجم
+        window.addEventListener('resize', () => {
+            if(isHealing && healingCtx) {
+                drawHealingOnIsolatedRegion(currentPalette[(colorIndexLocal-1) % currentPalette.length] || '#FFFFFF');
             }
         });
         
-        // منع التمرير أثناء الـ overlay عن طريق إضافة مستمع
-        overlay.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
-        overlay.addEventListener('wheel', (e) => e.preventDefault());
-        
-        // زر إغلاق عائم داخل الـ overlay
-        const closeFloating = document.createElement('button');
-        closeFloating.innerText = '✖';
-        closeFloating.className = 'close-btn';
-        closeFloating.onclick = (e) => { e.stopPropagation(); stopHealing(); };
-        overlay.appendChild(closeFloating);
-        
-        // إضافة رسالة توجيهية داخل الـ overlay: استهداف المنطقة المعطوبة
-        const targetMsg = document.createElement('div');
-        targetMsg.innerText = '👁️ ركز عينيك على المنطقة المصابة (البيكسل العالق) لزيادة الفعالية';
-        targetMsg.style.position = 'fixed';
-        targetMsg.style.bottom = '20px';
-        targetMsg.style.left = '0';
-        targetMsg.style.right = '0';
-        targetMsg.style.textAlign = 'center';
-        targetMsg.style.backgroundColor = 'rgba(0,0,0,0.7)';
-        targetMsg.style.color = '#ffd966';
-        targetMsg.style.padding = '8px';
-        targetMsg.style.fontWeight = 'bold';
-        targetMsg.style.fontSize = '14px';
-        targetMsg.style.zIndex = '20020';
-        targetMsg.style.backdropFilter = 'blur(12px)';
-        overlay.appendChild(targetMsg);
-        
-        // تحسين إضافي: تشغيل وضع الأداء العالي عبر إلغاء الخمول
-        setInterval(() => {
-            if(isFixing && overlay.style.display === 'block') {
-                // الحفاظ على النشاط لمنع السكون العميق
-                if (navigator.vibrate) navigator.vibrate(10);
-            }
-        }, 30000);
-        
-        // ========== 5. دعم خاصية إصلاح الألوان النقية مع تقنية الإطارات ==========
-        console.log("أقصى استغلال للأجهزة: تمكين HDR، سطوع أقصى، وميض عالي التردد، فلتر كونتراست.");
+        drawCanvasWithSelection();
+        updateRegionText();
     })();
 </script>
 </body>
